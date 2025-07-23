@@ -1,15 +1,38 @@
-import { NavigationContainer } from '@react-navigation/native'  
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import IndexApp from '../screens';
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createStackNavigator } from '@react-navigation/stack';
+import SideMenu from '../components/sideMenu';
+import Header from '../components/header';
+import HomeScreen from '../screens/ChastScreen';
+const Drawer = createDrawerNavigator();
+const Stack = createStackNavigator();
 
-const Stack = createNativeStackNavigator();
+function MainStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        header: () => <Header />, 
+      }}
+    >
+      <Stack.Screen name="Home" component={HomeScreen} />
+      
+    </Stack.Navigator>
+  );
+}
 
-export default function AppRouter() {
-     return (
-          <NavigationContainer>
-               <Stack.Navigator initialRouteName='Hello'>
-                    <Stack.Screen name='Hello' component={IndexApp} />
-               </Stack.Navigator>
-          </NavigationContainer>
-     )
+export default function AppRoutes() {
+  return (
+    <NavigationContainer>
+      <Drawer.Navigator
+        drawerContent={(props) => <SideMenu {...props} />}
+        screenOptions={{
+          drawerPosition: 'left',
+          headerShown: false,
+        }}
+      >
+        <Drawer.Screen name="Main" component={MainStack} />
+      </Drawer.Navigator>
+    </NavigationContainer>
+  );
 }

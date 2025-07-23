@@ -1,8 +1,12 @@
-import React from 'react'
-import AppRouter from './app/navigation/routes'
+// App.tsx
+import React from 'react';
+import { AuthProvider } from './app/services';
+import AppRoutes from './app/navigation/routes';
 
 export default function App() {
   return (
-    <AppRouter/>
-  )
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
 }
