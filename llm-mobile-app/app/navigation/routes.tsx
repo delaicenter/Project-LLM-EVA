@@ -5,6 +5,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import SideMenu from '../components/sideMenu';
 import Header from '../components/header';
 import HomeScreen from '../screens/ChastScreen';
+import LoginScreen from '../screens/LoginScreen/LoginScreen';
+import SignUpScreen from '../screens/SignUpScreen/SignUpScreen';
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
 
@@ -14,7 +16,18 @@ function MainStack() {
       screenOptions={{
         header: () => <Header />, 
       }}
+      initialRouteName='Login'
     >
+       <Stack.Screen 
+          name="Login" 
+          component={LoginScreen} 
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen 
+          name="SignUp" 
+          component={SignUpScreen} 
+          options={{ headerShown: false }}
+        />
       <Stack.Screen name="Home" component={HomeScreen} />
       
     </Stack.Navigator>
