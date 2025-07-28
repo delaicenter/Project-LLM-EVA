@@ -95,14 +95,14 @@ const SideMenu = ({ navigation }: any) => {
                          >
                               <Text style={styles.buttonText}>Logout</Text>
                          </TouchableOpacity>
-                    ) : (
-                         <TouchableOpacity
+                         ) : (
+                              <TouchableOpacity
                               style={[styles.button, styles.loginButton]}
                               onPress={handleLogin}
                          >
                               <Text style={styles.buttonText}>Login</Text>
-                         </TouchableOpacity>
-                    )}
+                              </TouchableOpacity>
+                         )}
                </View>
           </View>
      );

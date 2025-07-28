@@ -1,8 +1,8 @@
 export type RootStackParamList = {
-  Home: undefined;
   Chat: undefined;
   Login: undefined;
   SignUp: undefined;
+    Home: { userData: any };
 };
 
 declare global {
