@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
-import { useAuth } from '../services/auth';
+import { useAuth } from '../services/Auth/useAuth';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 
 const SideMenu = ({ navigation }: any) => {
-     const { isLoggedIn, user, logout } = useAuth();
+     const { isLoggedIn, user, login, logout } = useAuth();
      const [searchQuery, setSearchQuery] = React.useState('');
 
      const chatHistory = [
@@ -31,52 +31,62 @@ const SideMenu = ({ navigation }: any) => {
           { id: 20, title: 'Tindak Lanjut Feedback Tim QA' },
      ];
 
+     const handleLogin = () => {
+          login({
+               name: 'Edward',
+               email: 'edd@example.com',
+          });
+     };
 
-     // Filter history berdasarkan search
      const filteredHistory = chatHistory.filter(chat =>
           chat.title.toLowerCase().includes(searchQuery.toLowerCase())
      );
 
      return (
           <View style={styles.container}>
-               {isLoggedIn && (
-                    <View style={styles.fixedSection}>
-                         <View style={styles.userSection}>
-                              <Text style={styles.userName}>{user?.name}</Text>
-                              <Text style={styles.userEmail}>{user?.email}</Text>
+               {isLoggedIn ? (
+                    <>
+                         <View style={styles.fixedSection}>
+                              <View style={styles.userSection}>
+                                   <Text style={styles.userName}>{user?.name}</Text>
+                                   <Text style={styles.userEmail}>{user?.email}</Text>
+                              </View>
+
+                              <View style={styles.searchContainer}>
+                                   <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
+                                   <TextInput
+                                        style={styles.searchInput}
+                                        placeholder="Cari history chat..."
+                                        value={searchQuery}
+                                        onChangeText={setSearchQuery}
+                                   />
+                              </View>
                          </View>
 
-                         <View style={styles.searchContainer}>
-                              <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
-                              <TextInput
-                                   style={styles.searchInput}
-                                   placeholder="Cari history chat..."
-                                   value={searchQuery}
-                                   onChangeText={setSearchQuery}
-                              />
-                         </View>
+                         <DrawerContentScrollView
+                              style={styles.scrollView}
+                              contentContainerStyle={styles.scrollContent}
+                         >
+                              <View style={styles.historySection}>
+                                   <Text style={styles.sectionTitle}>History Chat</Text>
+                                   {filteredHistory.map(chat => (
+                                        <TouchableOpacity
+                                             key={chat.id}
+                                             style={styles.chatItem}
+                                             onPress={() => navigation.navigate('Chat', { chatId: chat.id })}
+                                        >
+                                             <Text style={styles.chatItemText}>{chat.title}</Text>
+                                        </TouchableOpacity>
+                                   ))}
+                              </View>
+                         </DrawerContentScrollView>
+                    </>
+               ) : (
+                    <View style={styles.loginPrompt}>
+                         <Text style={styles.loginText}>Please login to access chat features</Text>
                     </View>
                )}
 
-               <DrawerContentScrollView
-                    style={styles.scrollView}
-                    contentContainerStyle={styles.scrollContent}
-               >
-                    {isLoggedIn && (
-                         <View style={styles.historySection}>
-                              <Text style={styles.sectionTitle}>History Chat</Text>
-                              {filteredHistory.map(chat => (
-                                   <TouchableOpacity
-                                        key={chat.id}
-                                        style={styles.chatItem}
-                                        onPress={() => navigation.navigate('Chat', { chatId: chat.id })}
-                                   >
-                                        <Text>{chat.title}</Text>
-                                   </TouchableOpacity>
-                              ))}
-                         </View>
-                    )}
-               </DrawerContentScrollView>
                <View style={styles.footer}>
                     {isLoggedIn ? (
                          <TouchableOpacity
@@ -88,7 +98,7 @@ const SideMenu = ({ navigation }: any) => {
                     ) : (
                          <TouchableOpacity
                               style={[styles.button, styles.loginButton]}
-                              onPress={() => navigation.navigate('Login')}
+                              onPress={handleLogin}
                          >
                               <Text style={styles.buttonText}>Login</Text>
                          </TouchableOpacity>
@@ -104,8 +114,6 @@ const styles = StyleSheet.create({
      },
      fixedSection: {
           paddingTop: 20,
-          borderBottomWidth: 1,
-          borderBottomColor: '#f0f0f0',
      },
      userSection: {
           padding: 20,
@@ -115,6 +123,7 @@ const styles = StyleSheet.create({
           fontSize: 16,
           fontWeight: 'bold',
           marginBottom: 4,
+          color: '#ffffff',
      },
      userEmail: {
           fontSize: 14,
@@ -139,13 +148,15 @@ const styles = StyleSheet.create({
      },
      scrollView: {
           flex: 1,
-          top:-30
+          top: 0
      },
      scrollContent: {
           paddingBottom: 20,
      },
      historySection: {
-          paddingHorizontal: 15,
+          paddingHorizontal: 10,
+          top: -40
+
      },
      sectionTitle: {
           fontWeight: 'bold',
@@ -156,14 +167,16 @@ const styles = StyleSheet.create({
      chatItem: {
           paddingVertical: 12,
           paddingHorizontal: 10,
-          borderBottomWidth: 1,
-          borderBottomColor: '#f5f5f5',
-          bottom: 12
+          bottom: 12,
+          color: '#ffffff'
      },
+     chatItemText: {
+          color: '#ffffff',
+          fontSize: 16
+     },
+
      footer: {
           padding: 15,
-          borderTopWidth: 1,
-          borderTopColor: '#f0f0f0',
           bottom: 30
      },
      button: {
@@ -180,6 +193,17 @@ const styles = StyleSheet.create({
      buttonText: {
           color: 'white',
           fontWeight: 'bold',
+     },
+     loginPrompt: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: 20,
+     },
+     loginText: {
+          fontSize: 16,
+          color: '#666',
+          textAlign: 'center',
      },
 });
 

@@ -1,19 +1,57 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
 type ChatBubbleProps = {
      message: string;
      isUser: boolean;
      timestamp: string;
+     isTyping?: boolean; // Tambahkan prop ini
 };
 
-const ChatBubble = ({ message, isUser, timestamp }: ChatBubbleProps) => {
+const ChatBubble = ({ message, isUser, timestamp, isTyping = false }: ChatBubbleProps) => {
+     const [displayedText, setDisplayedText] = useState('');
+     const [showCursor, setShowCursor] = useState(true);
+
+     // Efek typing untuk bot message
+     useEffect(() => {
+          if (isTyping && !isUser) {
+               let currentIndex = 0;
+               setDisplayedText('');
+
+               const typingInterval = setInterval(() => {
+                    if (currentIndex < message.length) {
+                         setDisplayedText(prev => prev + message[currentIndex]);
+                         currentIndex++;
+                    } else {
+                         clearInterval(typingInterval);
+                         setShowCursor(false);
+                    }
+               }, 30); // Kecepatan typing (ms per karakter)
+
+               return () => clearInterval(typingInterval);
+          } else {
+               setDisplayedText(message); // Tampilkan langsung jika bukan typing effect
+          }
+     }, [message, isTyping, isUser]);
+
+     // Efek blink cursor
+     useEffect(() => {
+          if (isTyping && !isUser) {
+               const cursorInterval = setInterval(() => {
+                    setShowCursor(prev => !prev);
+               }, 500);
+
+               return () => clearInterval(cursorInterval);
+          }
+     }, [isTyping, isUser]);
+
      return (
           <View style={[styles.container, isUser ? styles.userBubble : styles.otherBubble]}>
-               <Text style={isUser ? styles.userText : styles.otherText}>{message}</Text>
-               <Text style={[styles.timestamp, isUser ? styles.userTimestamp : styles.otherTimestamp]}>
-                    {timestamp}
+               <Text style={isUser ? styles.userText : styles.otherText}>
+                    {isUser ? message : displayedText}
+                    {!isUser && isTyping && showCursor && <Text style={styles.cursor}>|</Text>}
                </Text>
+               
           </View>
      );
 };
@@ -21,26 +59,26 @@ const ChatBubble = ({ message, isUser, timestamp }: ChatBubbleProps) => {
 const styles = StyleSheet.create({
      container: {
           maxWidth: '80%',
-          padding: 12,
+          padding: 15,
           borderRadius: 12,
-          marginVertical: 4,
-          bottom:10
+          marginVertical: 10,
+          bottom: 5
      },
      userBubble: {
           alignSelf: 'flex-end',
-          backgroundColor: '#007AFF',
+          backgroundColor: '#4B4B4B64',
           borderBottomRightRadius: 0,
      },
      otherBubble: {
           alignSelf: 'flex-start',
-          backgroundColor: '#E5E5EA',
+          backgroundColor: '#021526',
           borderBottomLeftRadius: 0,
      },
      userText: {
           color: 'white',
      },
      otherText: {
-          color: 'black',
+          color: 'white',
      },
      timestamp: {
           fontSize: 10,
@@ -52,6 +90,10 @@ const styles = StyleSheet.create({
      },
      otherTimestamp: {
           color: '#8E8E93',
+     },
+     cursor: {
+          opacity: 0.8,
+          fontWeight: 'bold',
      },
 });
 

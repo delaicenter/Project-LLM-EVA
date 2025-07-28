@@ -1,4 +1,4 @@
 declare module '@env' {
-     export const API_URL: string;
+     export const EVA_API_URL: string;
      
 }

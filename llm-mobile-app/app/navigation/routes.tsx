@@ -4,9 +4,10 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createStackNavigator } from '@react-navigation/stack';
 import SideMenu from '../components/sideMenu';
 import Header from '../components/header';
-import HomeScreen from '../screens/ChastScreen';
-import LoginScreen from '../screens/LoginScreen/LoginScreen';
-import SignUpScreen from '../screens/SignUpScreen/SignUpScreen';
+import ChatScreen from '../screens/ChatScreen';
+import LoginScreen from '../screens/LoginScreen';
+import SignUpScreen from '../screens/SignUpScreen';
+import SplashScreen from '../screens/SplashScreen';
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator();
 
@@ -14,22 +15,16 @@ function MainStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        header: () => <Header />, 
+        header: () => <Header />,
       }}
-      initialRouteName='Login'
+      initialRouteName='Splash'
     >
-       <Stack.Screen 
-          name="Login" 
-          component={LoginScreen} 
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen 
-          name="SignUp" 
-          component={SignUpScreen} 
-          options={{ headerShown: false }}
-        />
-      <Stack.Screen name="Home" component={HomeScreen} />
-      
+
+      <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Home" component={ChatScreen} />
+
     </Stack.Navigator>
   );
 }
@@ -42,6 +37,10 @@ export default function AppRoutes() {
         screenOptions={{
           drawerPosition: 'left',
           headerShown: false,
+          drawerStyle: {
+            height: '100%',
+            backgroundColor: '#021526'
+          }
         }}
       >
         <Drawer.Screen name="Main" component={MainStack} />

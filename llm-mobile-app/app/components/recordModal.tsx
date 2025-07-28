@@ -34,7 +34,7 @@ const RecordingModal = ({ visible, slideAnim, recordingText, onStop }: Props) =>
                     },
                ]}
           >
-               <Icon name="mic" size={30} color="#FF3B30" />
+               <Icon name="mic" size={30} color="#FFFFFF" />
                <Text style={styles.recordingText}>{recordingText}</Text>
                <View style={styles.audioWave}>
                     {[1, 2, 3, 4, 5].map((_, i) => (
@@ -44,7 +44,7 @@ const RecordingModal = ({ visible, slideAnim, recordingText, onStop }: Props) =>
                                    styles.waveBar,
                                    {
                                         height: Math.random() * 20 + 5,
-                                        backgroundColor: i === 2 ? '#FF3B30' : '#888',
+                                        backgroundColor: i === 2 ? '#021526' : '#6EACDA',
                                    },
                               ]}
                          />

@@ -1,55 +1,69 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#121212' },
-  container: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingHorizontal: '8%',
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#021526',
   },
-  title: { 
-    fontWeight: 'bold', 
-    marginBottom: 30, 
-    textAlign: 'center', 
-    color: '#fff' 
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'stretch',
+    paddingHorizontal: 20,
   },
-  input: { 
-    borderWidth: 1, 
-    borderColor: '#333', 
-    backgroundColor: '#1e1e1e',
-    color: '#fff',
-    borderRadius: 8, 
-    marginBottom: 15, 
-    padding: 12 
+
+  title: {
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 24,
+    color: '#E2E2B6',
+  },
+  input: {
+    backgroundColor: '#FFFFFF0C',
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 15,
+    fontSize: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    borderColor: '#03346E',
+    color: '#ffffff',
   },
   loginButton: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    paddingVertical: 12,
+    backgroundColor: '#03346E',
+    borderRadius: 10,
+    padding: 15,
     alignItems: 'center',
     marginTop: 10,
   },
   loginButtonText: {
-    color: '#121212',
-    fontWeight: '600',
+    color: '#E2E2B6',
     fontSize: 16,
+    fontWeight: '600',
   },
-  signupText: { 
-    marginTop: 20, 
-    textAlign: 'center', 
-    color: '#ccc' 
+  errorText: {
+    color: '#ff4d4f',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 10,
   },
-  signupLink: { 
-    color: '#3b82f6', 
-    fontWeight: '500' 
+  signupText: {
+    textAlign: 'center',
+    color: '#444',
+    marginTop: 20,
+  },
+  signupLink: {
+    color: '#03346E',
+    fontWeight: 'bold',
   },
   googleIconButton: {
-    backgroundColor: '#fff',
-    borderRadius: 50,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
     alignSelf: 'center',
-    marginTop: 15,
+    marginTop: 30,
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 50,
+    elevation: 3,
   },
 });

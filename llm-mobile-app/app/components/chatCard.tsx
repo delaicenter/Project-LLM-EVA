@@ -1,28 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   TextInput,
   TouchableOpacity,
   StyleSheet,
   Animated,
+  Keyboard,
 } from 'react-native';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import RecordingModal from './recordModal';
 
 type MessageInputCardProps = {
   onSend: (message: string) => void;
+  autoFocus?: boolean;
 };
 
-const MessageInputCard = ({ onSend }: MessageInputCardProps) => {
+const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [recordingText, setRecordingText] = useState('Mendengarkan...');
   const slideAnim = useState(new Animated.Value(0))[0];
+  const inputRef = useRef<TextInput>(null);
+
+  useEffect(() => {
+    if (autoFocus) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [autoFocus]);
 
   const handleSend = () => {
     if (message.trim()) {
       onSend(message);
       setMessage('');
+      Keyboard.dismiss();
     }
   };
 
@@ -50,7 +62,7 @@ const MessageInputCard = ({ onSend }: MessageInputCardProps) => {
   };
 
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.container}>
       <RecordingModal
         visible={isRecording}
         slideAnim={slideAnim}
@@ -58,34 +70,34 @@ const MessageInputCard = ({ onSend }: MessageInputCardProps) => {
         onStop={stopRecording}
       />
 
-      <View style={styles.container}>
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Ketik pesan..."
-            value={message}
-            onChangeText={setMessage}
-            multiline
-            editable
-          />
-          <View style={styles.iconContainer}>
-            {message ? (
-              <TouchableOpacity onPress={handleSend} style={styles.iconButton}>
-                <Icon name="send" size={24} color="#007AFF" />
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity
-                onPress={isRecording ? stopRecording : startRecording}
-                style={styles.iconButton}
-              >
-                <Icon
-                  name={isRecording ? 'mic-off' : 'mic'}
-                  size={24}
-                  color={isRecording ? '#FF3B30' : '#007AFF'}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          ref={inputRef}
+          style={styles.input}
+          placeholder="Tanyakan sesuatu..."
+          placeholderTextColor="#ffffff"
+          value={message}
+          onChangeText={setMessage}
+          multiline
+          onSubmitEditing={handleSend}
+        />
+        <View style={styles.iconContainer}>
+          {message ? (
+            <TouchableOpacity onPress={handleSend} style={styles.iconButton}>
+              <Icon name="send" size={24} color="#ffffff" />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={isRecording ? stopRecording : startRecording}
+              style={styles.iconButton}
+            >
+              <Icon
+                name={isRecording ? 'mic-off' : 'mic'}
+                size={24}
+                color={isRecording ? '#FF3B30' : '#FFFFFF'}
+              />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -93,35 +105,24 @@ const MessageInputCard = ({ onSend }: MessageInputCardProps) => {
 };
 
 const styles = StyleSheet.create({
-  wrapper: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    backgroundColor: '#f5f5f5',
-  },
   container: {
-    position: 'relative',
+    backgroundColor: '#0D6BDE2A',
+    borderRadius: 25,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    minHeight: 60,
-    
   },
-
   input: {
     flex: 1,
     minHeight: 40,
     maxHeight: 120,
     paddingHorizontal: 10,
     fontSize: 16,
+    color: 'white',
+    paddingVertical: 8,
   },
   iconContainer: {
     marginLeft: 10,

@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useAuth } from '../services/auth';
+import { useAuth } from '../services/Auth/useAuth';
 import { useAppNavigation } from '../hooks/useAppNavigation';
 
 const Header = () => {
@@ -43,12 +43,10 @@ const styles = StyleSheet.create({
           justifyContent: 'space-between',
           padding: 15,
           paddingTop: 35,
-          backgroundColor: '#fff',
-          borderBottomWidth: 1,
-          borderBottomColor: '#e0e0e0',
+          backgroundColor: '#021526',
      },
      menuButton: {
-          padding: 8, 
+          padding: 8,
      },
      menuIcon: {
           width: 24,
@@ -58,12 +56,13 @@ const styles = StyleSheet.create({
      menuLine: {
           height: 2,
           width: '100%',
-          backgroundColor: '#333',
+          backgroundColor: '#ffffff',
           borderRadius: 2,
      },
      title: {
           fontSize: 18,
           fontWeight: 'bold',
+          color: '#ffffff'
      },
      loginButton: {
           paddingHorizontal: 12,
@@ -79,7 +78,7 @@ const styles = StyleSheet.create({
           width: 30,
           height: 30,
           borderRadius: 15,
-          backgroundColor: '#007AFF',
+          backgroundColor: '#BDBDBD',
           justifyContent: 'center',
           alignItems: 'center',
      },
