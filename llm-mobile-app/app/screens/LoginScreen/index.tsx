@@ -36,7 +36,7 @@ const LoginScreen = () => {
     try {
       const userData = await loginUser(username, password);
       console.log('Login berhasil:', userData);
-      navigation.replace("Home");
+      navigation.replace("Chat");
     } catch (error: any) {
       console.error('Login gagal:', error.response?.data || error.message);
       const detail = error.response?.data?.detail || "Login gagal, periksa username dan password.";

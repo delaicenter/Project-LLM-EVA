@@ -27,7 +27,7 @@ const SplashScreen = () => {
                const token = await AsyncStorage.getItem('access_token');
 
                if (token) {
-                    navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
+                    navigation.reset({ index: 0, routes: [{ name: 'Chat' }] });
                } else {
                     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });
                }

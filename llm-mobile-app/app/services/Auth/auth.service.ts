@@ -5,7 +5,7 @@ import { EVA_API_URL } from '@env'
 const API_BASE = EVA_API_URL;
 
 export const loginUser = async (username: string, password: string) => {
-     const response = await axios.post(`${API_BASE}/auth/login`, {
+     const response = await axios.post("http://eva.del.ac.id:35430/api/auth/login", {
           username,
           password,
      });

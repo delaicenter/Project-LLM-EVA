@@ -23,7 +23,7 @@ function MainStack() {
       <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Home" component={ChatScreen} />
+      <Stack.Screen name="Chat" component={ChatScreen} />
 
     </Stack.Navigator>
   );
