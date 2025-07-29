@@ -8,7 +8,7 @@ import { getChatHistory } from '../services/Chats/chats.service';
 import { CommonActions } from '@react-navigation/native';
 
 const SideMenu = ({ navigation }: any) => {
-     const { isLoggedIn, user, login, } = useAuth();
+     const { isLoggedIn, user, } = useAuth();
      const [searchQuery, setSearchQuery] = useState('');
      const [chatHistory, setChatHistory] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
@@ -81,7 +81,7 @@ const SideMenu = ({ navigation }: any) => {
                     <>
                          <View style={styles.fixedSection}>
                               <View style={styles.userSection}>
-                                   <Text style={styles.userName}>{user?.name}</Text>
+                                   <Text style={styles.userName}>{user?.full_name}</Text>
                                    <Text style={styles.userEmail}>{user?.email}</Text>
                               </View>
 
@@ -269,9 +269,21 @@ const styles = StyleSheet.create({
      },
 
      footer: {
-          padding: 15,
-          bottom: 30
+          borderTopWidth: 1,
+          borderTopColor: '#333',    
+          paddingVertical: 12,
+          paddingHorizontal: 10,
+          alignItems: 'center',
+          marginTop: 'auto',       
      },
+
+     developedBy: {
+          color: '#aaa',           
+          fontSize: 12,
+          textAlign: 'center',
+          letterSpacing: 0.5,
+     },
+
      button: {
           padding: 12,
           borderRadius: 6,

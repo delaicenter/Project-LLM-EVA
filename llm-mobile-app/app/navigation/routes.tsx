@@ -9,6 +9,7 @@ import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import SplashScreen from '../screens/SplashScreen';
 import { RootStackParamList } from './type';
+import ChangePasswordScreen from '../screens/ChangePassword';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator<RootStackParamList>();
@@ -30,6 +31,11 @@ function MainStack() {
         options={({ route }) => ({
           title: route.params?.title || 'Chat'
         })}
+      />
+      <Stack.Screen 
+        name="ChangePassword" 
+        component={ChangePasswordScreen}
+        options={{ headerShown: false  }}  
       />
     </Stack.Navigator>
   );

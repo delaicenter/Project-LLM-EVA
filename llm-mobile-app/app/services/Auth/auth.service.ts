@@ -5,7 +5,7 @@ import { EVA_API_URL } from '@env'
 const API_BASE = EVA_API_URL;
 
 export const loginUser = async (username: string, password: string) => {
-     const response = await axios.post("http://eva.del.ac.id:35430/api/auth/login", {
+     const response = await axios.post(`${API_BASE}/auth/login`, {
           username,
           password,
      });
@@ -18,6 +18,23 @@ export const loginUser = async (username: string, password: string) => {
      return data;
 };
 
+// Sign up
+export const signupUser = async (
+          username: string,
+          email: string,
+          fullName: string,
+          password: string
+     ) => {
+     const response = await axios.post(`${API_BASE}/auth/signup`, {
+          username,
+          email,
+          full_name: fullName,
+          password,
+     });
+
+     return response.data;
+};
+
 export const getAccessToken = async (): Promise<string | null> => {
      const token = await AsyncStorage.getItem('access_token');
      return token ? `Bearer ${token}` : null;
@@ -26,4 +43,26 @@ export const getAccessToken = async (): Promise<string | null> => {
 export const logoutUser = async () => {
      await AsyncStorage.removeItem('access_token');
      await AsyncStorage.removeItem('user_info');
+};
+
+export const changePassword = async (
+  newPassword: string,
+  confirmPassword: string
+) => {
+  const token = await getAccessToken();
+
+  const response = await axios.post(
+    `${API_BASE}/auth/change-password`,
+    {
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    },
+    {
+      headers: {
+        Authorization: token,
+      },
+    }
+  );
+
+  return response.data;
 };

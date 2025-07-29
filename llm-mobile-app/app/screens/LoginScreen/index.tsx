@@ -7,7 +7,9 @@ import {
   SafeAreaView,
   ScrollView,
   useWindowDimensions,
-  Image
+  Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -36,7 +38,7 @@ const LoginScreen = () => {
     try {
       const userData = await loginUser(username, password);
       console.log('Login berhasil:', userData);
-      navigation.replace("Chat");
+      navigation.replace("Chat", {});
     } catch (error: any) {
       console.error('Login gagal:', error.response?.data || error.message);
       const detail = error.response?.data?.detail || "Login gagal, periksa username dan password.";
@@ -56,54 +58,61 @@ const LoginScreen = () => {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView contentContainerStyle={[styles.container, { paddingVertical: height * 0.1 }]}>
-        <Text style={[styles.title, { fontSize: width * 0.08 }]}>Login</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          contentContainerStyle={[styles.container, { paddingVertical: height * 0.1 }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={[styles.title, { fontSize: width * 0.08 }]}>Login</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor="#888"
-          autoCapitalize="none"
-          returnKeyType="next"
-          onChangeText={setUsername}
-          value={username}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="#888"
-          secureTextEntry
-          returnKeyType="done"
-          onSubmitEditing={handleLogin}
-          onChangeText={setPassword}
-          value={password}
-        />
-
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
-          <Text style={styles.loginButtonText}>
-            {loading ? 'Logging in...' : 'Login'}
-          </Text>
-        </TouchableOpacity>
-
-
-        {errorMessage ? (
-          <Text style={styles.errorText}>{errorMessage}</Text>
-        ) : null}
-
-        <TouchableOpacity onPress={goToSignUp}>
-          <Text style={styles.signupText}>
-            Don’t have an account? <Text style={styles.signupLink}>Sign up here</Text>
-          </Text>
-        </TouchableOpacity>
-
-        {/* <TouchableOpacity style={styles.googleIconButton} onPress={handleGoogleLogin}>
-          <Image
-            source={require('../../../assets/google.png')}
-            style={{ width: 24, height: 24 }}
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#888"
+            autoCapitalize="none"
+            returnKeyType="next"
+            onChangeText={setUsername}
+            value={username}
           />
-        </TouchableOpacity> */}
-      </ScrollView>
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#888"
+            secureTextEntry
+            returnKeyType="done"
+            onSubmitEditing={handleLogin}
+            onChangeText={setPassword}
+            value={password}
+          />
+
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+            <Text style={styles.loginButtonText}>
+              {loading ? 'Logging in...' : 'Login'}
+            </Text>
+          </TouchableOpacity>
+
+          {errorMessage ? (
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          ) : null}
+
+          <TouchableOpacity onPress={goToSignUp}>
+            <Text style={styles.signupText}>
+              Don’t have an account? <Text style={styles.signupLink}>Sign up here</Text>
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.googleIconButton} onPress={handleGoogleLogin}>
+            <Image
+              source={require('../../../assets/google.png')}
+              style={{ width: 24, height: 24 }}
+            />
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
