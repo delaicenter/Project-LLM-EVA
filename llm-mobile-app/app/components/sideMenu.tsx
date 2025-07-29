@@ -8,7 +8,7 @@ import { getChatHistory } from '../services/Chats/chats.service';
 import { CommonActions } from '@react-navigation/native';
 
 const SideMenu = ({ navigation }: any) => {
-     const { isLoggedIn, user, login, logout } = useAuth();
+     const { isLoggedIn, user, login } = useAuth();
      const [searchQuery, setSearchQuery] = useState('');
      const [chatHistory, setChatHistory] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
@@ -41,30 +41,30 @@ const SideMenu = ({ navigation }: any) => {
           });
      };
 
-const handleLogout = async () => {
-  try {
-    await AsyncStorage.removeItem('access_token');
-    await AsyncStorage.removeItem('user_info');
+     const handleLogout = async () => {
+          try {
+               await AsyncStorage.removeItem('access_token');
+               await AsyncStorage.removeItem('user_info');
 
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'Main',
-            state: {
-              routes: [
-                { name: 'Login' }
-              ]
-            }
+               navigation.dispatch(
+                    CommonActions.reset({
+                         index: 0,
+                         routes: [
+                                   {
+                                   name: 'Main',
+                                        state: {
+                                             routes: [
+                                                  { name: 'Login' }
+                                             ]
+                                        }
+                                   }
+                         ],
+                    })
+               );
+               } catch (error) {
+               console.error('Failed to remove token:', error);
           }
-        ],
-      })
-    );
-  } catch (error) {
-    console.error('Failed to remove token:', error);
-  }
-};
+     };
 
 
      const filteredHistory = chatHistory.filter(chat =>
@@ -77,7 +77,7 @@ const handleLogout = async () => {
                     <>
                          <View style={styles.fixedSection}>
                               <View style={styles.userSection}>
-                                   <Text style={styles.userName}>{user?.name}</Text>
+                                   <Text style={styles.userName}>{user?.full_name}</Text>
                                    <Text style={styles.userEmail}>{user?.email}</Text>
                               </View>
 
@@ -137,23 +137,10 @@ const handleLogout = async () => {
                     </View>
                )}
 
-               <View style={styles.footer}>
-                    {isLoggedIn ? (
-                         <TouchableOpacity
-                              style={[styles.button, styles.logoutButton]}
-                              onPress={handleLogout}
-                         >
-                              <Text style={styles.buttonText}>Logout</Text>
-                         </TouchableOpacity>
-                         ) : (
-                              <TouchableOpacity
-                              style={[styles.button, styles.loginButton]}
-                              onPress={handleLogout}
-                         >
-                              <Text style={styles.buttonText}>Login</Text>
-                              </TouchableOpacity>
-                         )}
-               </View>
+          <View style={styles.footer}>
+               <Text style={styles.developedBy}>Developed by Del Team</Text>
+          </View>
+
           </View>
      );
 };
@@ -240,9 +227,21 @@ const styles = StyleSheet.create({
      },
 
      footer: {
-          padding: 15,
-          bottom: 30
+          borderTopWidth: 1,
+          borderTopColor: '#333',    
+          paddingVertical: 12,
+          paddingHorizontal: 10,
+          alignItems: 'center',
+          marginTop: 'auto',       
      },
+
+     developedBy: {
+          color: '#aaa',           
+          fontSize: 12,
+          textAlign: 'center',
+          letterSpacing: 0.5,
+     },
+
      button: {
           padding: 12,
           borderRadius: 6,

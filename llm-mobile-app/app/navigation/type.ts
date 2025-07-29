@@ -9,6 +9,7 @@ export type RootStackParamList = {
     conversationId?: string;
     title?: string;
   };
+  ChangePassword: undefined;
 };
 
 export type MainDrawerParamList = {
