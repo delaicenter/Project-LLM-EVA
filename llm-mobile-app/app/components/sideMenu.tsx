@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useAuth } from '../services/Auth/useAuth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { getChatHistory } from '../services/Chats/chats.service';
+import { CommonActions } from '@react-navigation/native';
 
 const SideMenu = ({ navigation }: any) => {
      const { isLoggedIn, user, login, logout } = useAuth();
@@ -38,6 +40,32 @@ const SideMenu = ({ navigation }: any) => {
                email: 'edd@example.com',
           });
      };
+
+const handleLogout = async () => {
+  try {
+    await AsyncStorage.removeItem('access_token');
+    await AsyncStorage.removeItem('user_info');
+
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'Main',
+            state: {
+              routes: [
+                { name: 'Login' }
+              ]
+            }
+          }
+        ],
+      })
+    );
+  } catch (error) {
+    console.error('Failed to remove token:', error);
+  }
+};
+
 
      const filteredHistory = chatHistory.filter(chat =>
           chat.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -113,18 +141,18 @@ const SideMenu = ({ navigation }: any) => {
                     {isLoggedIn ? (
                          <TouchableOpacity
                               style={[styles.button, styles.logoutButton]}
-                              onPress={logout}
+                              onPress={handleLogout}
                          >
                               <Text style={styles.buttonText}>Logout</Text>
                          </TouchableOpacity>
-                    ) : (
-                         <TouchableOpacity
+                         ) : (
+                              <TouchableOpacity
                               style={[styles.button, styles.loginButton]}
-                              onPress={handleLogin}
+                              onPress={handleLogout}
                          >
                               <Text style={styles.buttonText}>Login</Text>
-                         </TouchableOpacity>
-                    )}
+                              </TouchableOpacity>
+                         )}
                </View>
           </View>
      );

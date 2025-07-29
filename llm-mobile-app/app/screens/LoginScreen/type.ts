@@ -1,4 +1,4 @@
-export interface LoginFormValues {
-  email: string;
-  password: string;
-}
+export type RootStackParamList = {
+  Login: undefined;
+  SignUp: undefined;
+};
