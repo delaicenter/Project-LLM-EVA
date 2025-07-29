@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { removeThinkTags } from '../utils/chat';
-
+import Markdown from 'react-native-markdown-display';
 type ChatBubbleProps = {
      message: string;
      isUser: boolean;
      timestamp: string;
      isTyping?: boolean;
+     onTypingDone?: () => void;
 };
 
-const ChatBubble = ({ message, isUser, timestamp, isTyping = false }: ChatBubbleProps) => {
+const ChatBubble = ({ message, isUser, timestamp, isTyping = false, onTypingDone }: ChatBubbleProps) => {
      const [displayedText, setDisplayedText] = useState('');
      const [showCursor, setShowCursor] = useState(true);
 
@@ -27,6 +28,7 @@ const ChatBubble = ({ message, isUser, timestamp, isTyping = false }: ChatBubble
                     } else {
                          clearInterval(typingInterval);
                          setShowCursor(false);
+                         onTypingDone?.();
                     }
                }, 30);
 
@@ -47,13 +49,61 @@ const ChatBubble = ({ message, isUser, timestamp, isTyping = false }: ChatBubble
           }
      }, [isTyping, isUser]);
 
+     const markdownStyles: { [key: string]: TextStyle | ViewStyle } = {
+          text: {
+               color: 'white',
+               fontSize: 15,
+               lineHeight: 22,
+          },
+          strong: {
+               fontWeight: '700',
+          },
+          em: {
+               fontStyle: 'italic',
+          },
+          heading1: {
+               fontSize: 22,
+               fontWeight: '700',
+          },
+          heading2: {
+               fontSize: 18,
+               fontWeight: '700',
+          },
+          bullet_list: {
+               marginVertical: 4,
+          },
+          list_item: {
+               flexDirection: 'row',
+               alignItems: 'flex-start',
+          },
+          table: {
+               borderWidth: 1,
+               borderColor: '#ccc',
+               marginVertical: 6,
+          },
+          th: {
+               backgroundColor: '#ccc',
+               padding: 4,
+          },
+          td: {
+               padding: 4,
+               borderWidth: 1,
+               borderColor: '#ccc',
+          },
+     };
+
+
      return (
           <View style={[styles.container, isUser ? styles.userBubble : styles.otherBubble]}>
-               <Text style={isUser ? styles.userText : styles.otherText}>
-                    {isUser ? cleanedMessage : displayedText}
-                    {!isUser && isTyping && showCursor && <Text style={styles.cursor}>|</Text>}
-               </Text>
+               {isUser ? (
+                    <Text style={styles.userText}>{cleanedMessage}</Text>
+               ) : (
+                    <Markdown style={markdownStyles}>
+                         {displayedText}
+                    </Markdown>
+               )}
           </View>
+
      );
 };
 

@@ -8,7 +8,7 @@ import { getChatHistory } from '../services/Chats/chats.service';
 import { CommonActions } from '@react-navigation/native';
 
 const SideMenu = ({ navigation }: any) => {
-     const { isLoggedIn, user, login, logout } = useAuth();
+     const { isLoggedIn, user, login, } = useAuth();
      const [searchQuery, setSearchQuery] = useState('');
      const [chatHistory, setChatHistory] = useState<any[]>([]);
      const [loading, setLoading] = useState(false);
@@ -34,37 +34,41 @@ const SideMenu = ({ navigation }: any) => {
           }
      };
 
-     const handleLogin = () => {
-          login({
-               name: 'Edward',
-               email: 'edd@example.com',
+     const handleNewChat = () => {
+          navigation.navigate('Main', {
+               screen: 'Chat',
+               params: {
+                    conversationId: null,
+                    title: 'Obrolan Baru'
+               }
           });
+          navigation.closeDrawer();
      };
 
-const handleLogout = async () => {
-  try {
-    await AsyncStorage.removeItem('access_token');
-    await AsyncStorage.removeItem('user_info');
+     const handleLogout = async () => {
+          try {
+               await AsyncStorage.removeItem('access_token');
+               await AsyncStorage.removeItem('user_info');
 
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [
-          {
-            name: 'Main',
-            state: {
-              routes: [
-                { name: 'Login' }
-              ]
-            }
+               navigation.dispatch(
+                    CommonActions.reset({
+                         index: 0,
+                         routes: [
+                              {
+                                   name: 'Main',
+                                   state: {
+                                        routes: [
+                                             { name: 'Login' }
+                                        ]
+                                   }
+                              }
+                         ],
+                    })
+               );
+          } catch (error) {
+               console.error('Failed to remove token:', error);
           }
-        ],
-      })
-    );
-  } catch (error) {
-    console.error('Failed to remove token:', error);
-  }
-};
+     };
 
 
      const filteredHistory = chatHistory.filter(chat =>
@@ -88,8 +92,16 @@ const handleLogout = async () => {
                                         placeholder="Cari history chat..."
                                         value={searchQuery}
                                         onChangeText={setSearchQuery}
+                                        placeholderTextColor={'#03346E'}
                                    />
                               </View>
+                              <TouchableOpacity
+                                   style={styles.newChatButton}
+                                   onPress={handleNewChat}
+                              >
+                                   <Icon name="add" size={20} color="#fff" />
+                                   <Text style={styles.newChatButtonText}>Obrolan Baru</Text>
+                              </TouchableOpacity>
                          </View>
 
                          <DrawerContentScrollView
@@ -145,14 +157,14 @@ const handleLogout = async () => {
                          >
                               <Text style={styles.buttonText}>Logout</Text>
                          </TouchableOpacity>
-                         ) : (
-                              <TouchableOpacity
+                    ) : (
+                         <TouchableOpacity
                               style={[styles.button, styles.loginButton]}
                               onPress={handleLogout}
                          >
                               <Text style={styles.buttonText}>Login</Text>
-                              </TouchableOpacity>
-                         )}
+                         </TouchableOpacity>
+                    )}
                </View>
           </View>
      );
@@ -194,6 +206,23 @@ const styles = StyleSheet.create({
           flex: 1,
           height: 40,
           fontSize: 14,
+          color: '#03346E'
+     },
+     newChatButton: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: '#03346E',
+          padding: 12,
+          borderRadius: 8,
+          marginBottom: 16,
+          justifyContent: 'center',
+          marginHorizontal: 15,
+          paddingHorizontal: 10,
+     },
+     newChatButtonText: {
+          color: '#fff',
+          marginLeft: 8,
+          fontWeight: 'bold',
      },
      scrollView: {
           flex: 1,

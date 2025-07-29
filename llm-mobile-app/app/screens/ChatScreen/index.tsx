@@ -14,7 +14,7 @@ import MessageInputCard from '../../components/chatCard';
 import ChatBubble from '../../components/chatBubble';
 import ChatLoadingBubble from '../../components/chatLoading';
 import WelcomeCard from '../../components/welcomeCard';
-import { startChat, initiateConversation } from '../../services/Chats/chats.service';
+import { startChat, initiateConversation, getPreviousMessages } from '../../services/Chats/chats.service';
 import { ChatScreenProps } from '../../navigation/type';
 type Message = {
      id: string;
@@ -22,7 +22,9 @@ type Message = {
      isUser: boolean;
      timestamp: string;
      isLoading?: boolean;
+     isTyping?: boolean;
 };
+
 
 const ChatScreen: React.FC<ChatScreenProps> = ({ navigation, route }) => {
      const { conversationId: initialConversationId, title } = route.params || {};
@@ -32,21 +34,61 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation, route }) => {
      const [keyboardHeight, setKeyboardHeight] = useState(0);
      const scrollViewRef = useRef<ScrollView>(null);
 
+     //ngeload message dari history
      useEffect(() => {
-          const init = async () => {
+          const loadPreviousMessages = async () => {
+               if (!initialConversationId || !isLoggedIn) return;
                try {
-                    const newConversationId = await initiateConversation();
-                    setConversationId(newConversationId);
+                    const prevMsgs = await getPreviousMessages(initialConversationId);
+                    console.log('Log:', prevMsgs);
+                    prevMsgs.sort((a: any, b: any) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+                    const formattedMessages: Message[] = prevMsgs.map((msg: any) => ({
+                         id: msg.id?.toString() ?? Date.now().toString(),
+                         text: msg.content || '',
+                         isUser: msg.role === 'user',
+                         timestamp: new Date(msg.timestamp).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                         }),
+                    }));
+
+                    setMessages(formattedMessages);
                } catch (error) {
-                    console.error('Failed to initiate conversation:', error);
+                    console.error('Failed to load previous messages:', error);
                }
           };
 
-          if (isLoggedIn) {
-               init();
-          }
-     }, [isLoggedIn]);
+          loadPreviousMessages();
+     }, [initialConversationId, isLoggedIn]);
 
+
+     //ngeload chat yang baru saja dimulai
+     useEffect(() => {
+          if (!initialConversationId) {
+               setMessages([]); // Kosongkan isi chat
+          }
+     }, [initialConversationId]);
+
+     useEffect(() => {
+          const init = async () => {
+               if (!initialConversationId && isLoggedIn) {
+                    try {
+                         const newConversationId = await initiateConversation();
+                         setConversationId(newConversationId);
+                    } catch (error) {
+                         console.error('Failed to initiate conversation:', error);
+                    }
+               } else if (initialConversationId) {
+                    setConversationId(initialConversationId);
+               }
+          };
+
+          init();
+     }, [initialConversationId, isLoggedIn]);
+
+
+     //set keyboard
      useEffect(() => {
           const keyboardDidShowListener = Keyboard.addListener(
                Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
@@ -68,6 +110,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation, route }) => {
           };
      }, []);
 
+
+     //handle send message
      const handleSendMessage = async (message: string) => {
           if (!message.trim()) return;
 
@@ -97,22 +141,30 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation, route }) => {
           try {
                const response = await startChat(message, conversationId || undefined);
 
-               // Update conversation ID if it's a new conversation
                if (response.conversationId && !conversationId) {
                     setConversationId(response.conversationId);
                }
 
-               // Remove loading message
                setMessages((prev) => prev.filter(msg => msg.id !== loadingMessage.id));
 
                const replyMessage: Message = {
                     id: Date.now().toString() + '-bot',
                     text: response.reply || 'Tidak ada balasan.',
                     isUser: false,
+                    isTyping: true,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                };
 
-               setMessages((prev) => [...prev, replyMessage]);
+
+               setMessages((prev) => {
+                    const updated = prev.map(msg => ({
+                         ...msg,
+                         isTyping: false
+                    }));
+
+                    return [...updated, replyMessage];
+               });
+               ;
 
                setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -134,7 +186,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation, route }) => {
           return (
                <SafeAreaView style={styles.container}>
                     <View style={styles.authContainer}>
-                         <Text>Silakan login dari menu samping untuk melanjutkan</Text>
+                         <Text>To start chat, please login</Text>
                     </View>
                </SafeAreaView>
           );
@@ -185,6 +237,12 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ navigation, route }) => {
                                                   message={msg.text}
                                                   isUser={msg.isUser}
                                                   timestamp={msg.timestamp}
+                                                  isTyping={msg.isTyping}
+                                                  onTypingDone={() => {
+                                                       setMessages(prev =>
+                                                            prev.map(m => (m.id === msg.id ? { ...m, isTyping: false } : m))
+                                                       );
+                                                  }}
                                              />
                                         )
                                    )
