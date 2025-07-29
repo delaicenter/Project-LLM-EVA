@@ -1,35 +1,36 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useAuth } from '../services/Auth/useAuth';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
+import { getChatHistory } from '../services/Chats/chats.service';
 
 const SideMenu = ({ navigation }: any) => {
      const { isLoggedIn, user, login, logout } = useAuth();
-     const [searchQuery, setSearchQuery] = React.useState('');
+     const [searchQuery, setSearchQuery] = useState('');
+     const [chatHistory, setChatHistory] = useState<any[]>([]);
+     const [loading, setLoading] = useState(false);
+     const [error, setError] = useState('');
 
-     const chatHistory = [
-          { id: 1, title: 'Diskusi Project A' },
-          { id: 2, title: 'Meeting dengan Klien' },
-          { id: 3, title: 'Brainstorming Ide' },
-          { id: 4, title: 'Review Proposal Kerja Sama' },
-          { id: 5, title: 'Follow Up Tim Desain' },
-          { id: 6, title: 'Rapat Evaluasi Mingguan' },
-          { id: 7, title: 'Diskusi Anggaran' },
-          { id: 8, title: 'Pembuatan Roadmap Produk' },
-          { id: 9, title: 'Koordinasi dengan Developer' },
-          { id: 10, title: 'Strategi Marketing 2025' },
-          { id: 11, title: 'Presentasi Ke Investor' },
-          { id: 12, title: 'Pembuatan Konten Sosial Media' },
-          { id: 13, title: 'Diskusi Nama Produk Baru' },
-          { id: 14, title: 'Analisis Feedback Pengguna' },
-          { id: 15, title: 'Perencanaan UI/UX Baru' },
-          { id: 16, title: 'Diskusi Pricing Model' },
-          { id: 17, title: 'Persiapan Demo App' },
-          { id: 18, title: 'Rencana Peluncuran Versi Beta' },
-          { id: 19, title: 'Konsultasi Legalitas Produk' },
-          { id: 20, title: 'Tindak Lanjut Feedback Tim QA' },
-     ];
+     useEffect(() => {
+          if (isLoggedIn) {
+               fetchChatHistory();
+          }
+     }, [isLoggedIn]);
+
+     const fetchChatHistory = async () => {
+          setLoading(true);
+          setError('');
+          try {
+               const history = await getChatHistory();
+               setChatHistory(history);
+          } catch (err) {
+               setError('Gagal memuat history chat');
+               console.error(err);
+          } finally {
+               setLoading(false);
+          }
+     };
 
      const handleLogin = () => {
           login({
@@ -69,21 +70,42 @@ const SideMenu = ({ navigation }: any) => {
                          >
                               <View style={styles.historySection}>
                                    <Text style={styles.sectionTitle}>History Chat</Text>
-                                   {filteredHistory.map(chat => (
-                                        <TouchableOpacity
-                                             key={chat.id}
-                                             style={styles.chatItem}
-                                             onPress={() => navigation.navigate('Chat', { chatId: chat.id })}
-                                        >
-                                             <Text style={styles.chatItemText}>{chat.title}</Text>
-                                        </TouchableOpacity>
-                                   ))}
+
+                                   {loading ? (
+                                        <ActivityIndicator size="small" color="#ffffff" />
+                                   ) : error ? (
+                                        <Text style={styles.errorText}>{error}</Text>
+                                   ) : filteredHistory.length === 0 ? (
+                                        <Text style={styles.emptyText}>Tidak ada history chat</Text>
+                                   ) : (
+                                        filteredHistory.map(chat => (
+                                             <TouchableOpacity
+                                                  key={chat.id}
+                                                  style={styles.chatItem}
+                                                  onPress={() => navigation.navigate('Main', {
+                                                       screen: 'Chat',
+                                                       params: {
+                                                            conversationId: chat.id,
+                                                            title: chat.title
+                                                       }
+                                                  })
+                                                  }
+                                             >
+                                                  <Text style={styles.chatItemText} numberOfLines={1}>
+                                                       {chat.title}
+                                                  </Text>
+                                                  <Text style={styles.chatDateText}>
+                                                       {new Date(chat.lastUpdated || chat.createdAt).toLocaleDateString()}
+                                                  </Text>
+                                             </TouchableOpacity>
+                                        ))
+                                   )}
                               </View>
                          </DrawerContentScrollView>
                     </>
                ) : (
                     <View style={styles.loginPrompt}>
-                         <Text style={styles.loginText}>Please login to access chat features</Text>
+                         <Text style={styles.loginText}>Silakan login untuk mengakses fitur chat</Text>
                     </View>
                )}
 
@@ -107,7 +129,6 @@ const SideMenu = ({ navigation }: any) => {
           </View>
      );
 };
-
 const styles = StyleSheet.create({
      container: {
           flex: 1,
@@ -173,6 +194,21 @@ const styles = StyleSheet.create({
      chatItemText: {
           color: '#ffffff',
           fontSize: 16
+     },
+     errorText: {
+          color: '#ff4444',
+          textAlign: 'center',
+          marginTop: 10,
+     },
+     emptyText: {
+          color: '#666',
+          textAlign: 'center',
+          marginTop: 10,
+     },
+     chatDateText: {
+          color: '#888',
+          fontSize: 12,
+          marginTop: 2,
      },
 
      footer: {

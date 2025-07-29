@@ -1,38 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { removeThinkTags } from '../utils/chat';
 
 type ChatBubbleProps = {
      message: string;
      isUser: boolean;
      timestamp: string;
-     isTyping?: boolean; // Tambahkan prop ini
+     isTyping?: boolean;
 };
 
 const ChatBubble = ({ message, isUser, timestamp, isTyping = false }: ChatBubbleProps) => {
      const [displayedText, setDisplayedText] = useState('');
      const [showCursor, setShowCursor] = useState(true);
 
-     // Efek typing untuk bot message
+     const cleanedMessage = isUser ? message : removeThinkTags(message);
+
      useEffect(() => {
           if (isTyping && !isUser) {
                let currentIndex = 0;
                setDisplayedText('');
 
                const typingInterval = setInterval(() => {
-                    if (currentIndex < message.length) {
-                         setDisplayedText(prev => prev + message[currentIndex]);
+                    if (currentIndex < cleanedMessage.length) {
+                         setDisplayedText(prev => prev + cleanedMessage[currentIndex]);
                          currentIndex++;
                     } else {
                          clearInterval(typingInterval);
                          setShowCursor(false);
                     }
-               }, 30); // Kecepatan typing (ms per karakter)
+               }, 30);
 
                return () => clearInterval(typingInterval);
           } else {
-               setDisplayedText(message); // Tampilkan langsung jika bukan typing effect
+               setDisplayedText(cleanedMessage);
           }
-     }, [message, isTyping, isUser]);
+     }, [cleanedMessage, isTyping, isUser]);
 
      // Efek blink cursor
      useEffect(() => {
@@ -48,10 +50,9 @@ const ChatBubble = ({ message, isUser, timestamp, isTyping = false }: ChatBubble
      return (
           <View style={[styles.container, isUser ? styles.userBubble : styles.otherBubble]}>
                <Text style={isUser ? styles.userText : styles.otherText}>
-                    {isUser ? message : displayedText}
+                    {isUser ? cleanedMessage : displayedText}
                     {!isUser && isTyping && showCursor && <Text style={styles.cursor}>|</Text>}
                </Text>
-               
           </View>
      );
 };

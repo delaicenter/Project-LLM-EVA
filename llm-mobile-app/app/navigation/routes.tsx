@@ -8,8 +8,10 @@ import ChatScreen from '../screens/ChatScreen';
 import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import SplashScreen from '../screens/SplashScreen';
+import { RootStackParamList } from './type';
+
 const Drawer = createDrawerNavigator();
-const Stack = createStackNavigator();
+const Stack = createStackNavigator<RootStackParamList>();
 
 function MainStack() {
   return (
@@ -19,12 +21,16 @@ function MainStack() {
       }}
       initialRouteName='Splash'
     >
-
       <Stack.Screen name="Splash" component={SplashScreen} options={{ headerShown: false }} />
       <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
       <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Chat" component={ChatScreen} />
-
+      <Stack.Screen
+        name="Chat"
+        component={ChatScreen}
+        options={({ route }) => ({
+          title: route.params?.title || 'Chat'
+        })}
+      />
     </Stack.Navigator>
   );
 }
@@ -42,6 +48,7 @@ export default function AppRoutes() {
             backgroundColor: '#021526'
           }
         }}
+        initialRouteName="Main"
       >
         <Drawer.Screen name="Main" component={MainStack} />
       </Drawer.Navigator>

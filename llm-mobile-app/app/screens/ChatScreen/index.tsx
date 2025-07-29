@@ -14,7 +14,8 @@ import MessageInputCard from '../../components/chatCard';
 import ChatBubble from '../../components/chatBubble';
 import ChatLoadingBubble from '../../components/chatLoading';
 import WelcomeCard from '../../components/welcomeCard';
-
+import { startChat, initiateConversation } from '../../services/Chats/chats.service';
+import { ChatScreenProps } from '../../navigation/type';
 type Message = {
      id: string;
      text: string;
@@ -23,11 +24,28 @@ type Message = {
      isLoading?: boolean;
 };
 
-const HomeScreen = () => {
+const ChatScreen: React.FC<ChatScreenProps> = ({ navigation, route }) => {
+     const { conversationId: initialConversationId, title } = route.params || {};
+     const [conversationId, setConversationId] = useState<string | null>(initialConversationId || null);
      const { isLoggedIn, user } = useAuth();
      const [messages, setMessages] = useState<Message[]>([]);
      const [keyboardHeight, setKeyboardHeight] = useState(0);
      const scrollViewRef = useRef<ScrollView>(null);
+
+     useEffect(() => {
+          const init = async () => {
+               try {
+                    const newConversationId = await initiateConversation();
+                    setConversationId(newConversationId);
+               } catch (error) {
+                    console.error('Failed to initiate conversation:', error);
+               }
+          };
+
+          if (isLoggedIn) {
+               init();
+          }
+     }, [isLoggedIn]);
 
      useEffect(() => {
           const keyboardDidShowListener = Keyboard.addListener(
@@ -50,7 +68,7 @@ const HomeScreen = () => {
           };
      }, []);
 
-     const handleSendMessage = (message: string) => {
+     const handleSendMessage = async (message: string) => {
           if (!message.trim()) return;
 
           const newMessage: Message = {
@@ -76,28 +94,47 @@ const HomeScreen = () => {
 
           setMessages((prev) => [...prev, loadingMessage]);
 
-          setTimeout(() => {
+          try {
+               const response = await startChat(message, conversationId || undefined);
+
+               // Update conversation ID if it's a new conversation
+               if (response.conversationId && !conversationId) {
+                    setConversationId(response.conversationId);
+               }
+
+               // Remove loading message
                setMessages((prev) => prev.filter(msg => msg.id !== loadingMessage.id));
 
                const replyMessage: Message = {
                     id: Date.now().toString() + '-bot',
-                    text: 'Anda mengetikkan : ' + message,
+                    text: response.reply || 'Tidak ada balasan.',
                     isUser: false,
                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                };
+
                setMessages((prev) => [...prev, replyMessage]);
 
                setTimeout(() => {
                     scrollViewRef.current?.scrollToEnd({ animated: true });
                }, 100);
-          }, 1000);
+          } catch (error: any) {
+               setMessages((prev) => prev.filter(msg => msg.id !== loadingMessage.id));
+               console.error('Error starting chat:', error);
+               const errorMsg: Message = {
+                    id: Date.now().toString() + '-err',
+                    text: 'Terjadi kesalahan saat mengirim pesan.',
+                    isUser: false,
+                    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+               };
+               setMessages((prev) => [...prev, errorMsg]);
+          }
      };
 
      if (!isLoggedIn) {
           return (
                <SafeAreaView style={styles.container}>
                     <View style={styles.authContainer}>
-                         <Text>Please login from the side menu to continue</Text>
+                         <Text>Silakan login dari menu samping untuk melanjutkan</Text>
                     </View>
                </SafeAreaView>
           );
@@ -168,7 +205,6 @@ const HomeScreen = () => {
           </SafeAreaView>
      );
 };
-
 const styles = StyleSheet.create({
      container: {
           flex: 1,
@@ -196,7 +232,7 @@ const styles = StyleSheet.create({
      inputWrapper: {
           paddingHorizontal: 16,
           paddingTop: 8,
-          backgroundColor: '#021526', // Tambahkan background color
+          backgroundColor: '#021526',
      },
      authContainer: {
           flex: 1,
@@ -206,4 +242,4 @@ const styles = StyleSheet.create({
      },
 });
 
-export default HomeScreen;
+export default ChatScreen;
