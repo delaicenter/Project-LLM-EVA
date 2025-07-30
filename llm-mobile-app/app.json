@@ -25,6 +25,21 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "c4889371-ab5a-4cb1-9fd5-58120fbd574f"
+      }
+    },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useCleartextTraffic": true
+          }
+        }
+      ]
+    ]
   }
 }

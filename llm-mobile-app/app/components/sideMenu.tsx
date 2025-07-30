@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
      },
      scrollView: {
           flex: 1,
-          top: 0
+          top: 0,
      },
      scrollContent: {
           paddingBottom: 20,
@@ -269,12 +269,12 @@ const styles = StyleSheet.create({
      },
 
      footer: {
-          borderTopWidth: 1,
-          borderTopColor: '#333',    
+       backgroundColor:'#021526',  
           paddingVertical: 12,
           paddingHorizontal: 10,
           alignItems: 'center',
-          marginTop: 'auto',       
+          marginTop: 'auto', 
+          bottom:30
      },
 
      developedBy: {
@@ -294,6 +294,8 @@ const styles = StyleSheet.create({
      },
      logoutButton: {
           backgroundColor: '#ff4444',
+          width: '100%',
+          
      },
      buttonText: {
           color: 'white',

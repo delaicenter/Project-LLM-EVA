@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAccessToken } from '../Auth/auth.service';
 
-const API_BASE = 'http://eva.del.ac.id:35430/api';
+const API_BASE = 'http://eva.del.ac.id:33332/api/proxy/api';
 
 export const startChat = async (message: string, conversationId?: string) => {
   const token = await getAccessToken();

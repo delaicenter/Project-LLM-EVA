@@ -71,10 +71,12 @@ const ChatBubble = ({ message, isUser, timestamp, isTyping = false, onTypingDone
           },
           bullet_list: {
                marginVertical: 4,
+               color:'#ffffff'
           },
           list_item: {
                flexDirection: 'row',
                alignItems: 'flex-start',
+               color:'#ffffff'
           },
           table: {
                borderWidth: 1,
@@ -88,7 +90,7 @@ const ChatBubble = ({ message, isUser, timestamp, isTyping = false, onTypingDone
           td: {
                padding: 4,
                borderWidth: 1,
-               borderColor: '#ccc',
+               borderColor: '#ffffff',
           },
      };
 
@@ -103,13 +105,12 @@ const ChatBubble = ({ message, isUser, timestamp, isTyping = false, onTypingDone
                     </Markdown>
                )}
           </View>
-
      );
 };
 
 const styles = StyleSheet.create({
      container: {
-          maxWidth: '80%',
+          maxWidth: '100%',
           padding: 15,
           borderRadius: 12,
           marginVertical: 10,
