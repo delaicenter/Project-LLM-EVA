@@ -2,15 +2,15 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import qs from 'qs';
 
-const API_BASE = 'http://eva.del.ac.id:33332/api/proxy/api';
+const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
 
 export const loginUser = async (username: string, password: string) => {
-  console.log('LOGIN STARTED:', { username, password }); 
+  console.log('LOGIN STARTED:', { username, password });
 
   try {
     const payload = qs.stringify({ username, password });
 
-    console.log('LOGIN PAYLOAD:', payload); 
+    console.log('LOGIN PAYLOAD:', payload);
 
     const response = await axios.post(`${API_BASE}/auth/token`, payload, {
       headers: {
@@ -20,19 +20,19 @@ export const loginUser = async (username: string, password: string) => {
 
     const data = response.data;
 
-    console.log('LOGIN SUCCESS:', data); 
+    console.log('LOGIN SUCCESS:', data);
 
     await AsyncStorage.setItem('access_token', data.access_token);
     await AsyncStorage.setItem('user_info', JSON.stringify(data));
 
     return data;
-  } catch (error) {
+  } catch (error:any) {
     console.error('LOGIN ERROR:', error.response?.data || error.message);
     throw error;
   }
 };
 
- 
+
 export const signupUser = async (
   username: string,
   email: string,
@@ -51,27 +51,26 @@ export const signupUser = async (
 
     console.log('SIGNUP SUCCESS:', response.data);
     return response.data;
-  } catch (error) {
+  } catch (error:any) {
     console.error('SIGNUP ERROR:', error.response?.data || error.message);
     throw error;
   }
 };
 
- 
-export const getAccessToken = async (): Promise<string | null> => {
+
+// auth.service.ts
+export const getAccessToken = async () => {
   const token = await AsyncStorage.getItem('access_token');
-  console.log('GET ACCESS TOKEN:', token);
-  return token ? `Bearer ${token}` : null;
+  return token;  
 };
 
- 
 export const logoutUser = async () => {
   console.log('LOGOUT USER');
   await AsyncStorage.removeItem('access_token');
   await AsyncStorage.removeItem('user_info');
 };
 
- 
+
 export const changePassword = async (
   newPassword: string,
   confirmPassword: string

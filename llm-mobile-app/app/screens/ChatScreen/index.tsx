@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View, Text, SafeAreaView, ScrollView,
   KeyboardAvoidingView, Platform, Keyboard, StyleSheet
@@ -10,6 +10,7 @@ import MessageInputCard from '../../components/chatCard';
 import WelcomeCard from '../../components/welcomeCard';
 import { initiateConversation, getPreviousMessages, startChat } from '../../services/Chats/chats.service';
 import { ChatScreenProps } from '../../navigation/type';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Message = {
   id: string;
@@ -28,6 +29,18 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  const resetchat = () => {
+    setMessages([]);
+  }
+  useFocusEffect(
+    useCallback(() => {
+      if (!paramConversationId) {
+        resetchat();
+      }
+    }, [paramConversationId])
+  );
+
 
   useEffect(() => {
     const initChat = async () => {
@@ -48,7 +61,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
             isUser: msg.role === 'user',
             timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           }));
-
           setMessages(formatted);
           setConversationId(paramConversationId);
 
@@ -146,11 +158,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
         <ScrollView
           ref={scrollViewRef}
           style={styles.chatContainer}
-          contentContainerStyle={
-            messages.length === 0
-              ? styles.emptyChatContentContainer
-              : { padding: 16, paddingBottom: keyboardHeight + 20 }
-          }
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
         >
@@ -222,7 +229,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
     backgroundColor: '#021526',
-    paddingBottom: Platform.OS === 'ios' ? 16 : 65,
+    paddingBottom: Platform.OS === 'ios' ? 16 :8,
   },
   authContainer: {
     flex: 1,

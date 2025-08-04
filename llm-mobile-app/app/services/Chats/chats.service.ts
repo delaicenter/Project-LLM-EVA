@@ -1,18 +1,23 @@
 import axios from 'axios';
 import { getAccessToken } from '../Auth/auth.service';
 
-const API_BASE = 'http://eva.del.ac.id:33332/api/proxy/api';
+const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
+
+const getAuthHeader = async () => {
+  const token = await getAccessToken();
+  if (!token) throw new Error('No access token found');
+  return { Authorization: `Bearer ${token}` };
+};
 
 export const startChat = async (message: string, conversationId?: string) => {
-  const token = await getAccessToken();
-
   try {
+    const headers = await getAuthHeader();
     const response = await axios.post(`${API_BASE}/chat/`, {
       message,
       conversation_id: conversationId
     }, {
       headers: {
-        'Authorization': token,
+        ...headers,
         'Content-Type': 'application/json'
       }
     });
@@ -29,12 +34,11 @@ export const startChat = async (message: string, conversationId?: string) => {
 };
 
 export const initiateConversation = async () => {
-  const token = await getAccessToken();
-
   try {
+    const headers = await getAuthHeader();
     const response = await axios.post(`${API_BASE}/chat/initiate`, {}, {
       headers: {
-        'Authorization': token,
+        ...headers,
         'Content-Type': 'application/json'
       }
     });
@@ -47,13 +51,10 @@ export const initiateConversation = async () => {
 };
 
 export const getConversations = async () => {
-  const token = await getAccessToken();
-
   try {
+    const headers = await getAuthHeader();
     const response = await axios.get(`${API_BASE}/chat/conversations`, {
-      headers: {
-        'Authorization': token
-      }
+      headers
     });
 
     return response.data;
@@ -64,37 +65,37 @@ export const getConversations = async () => {
 };
 
 export const getChatHistory = async () => {
-  const token = await getAccessToken();
-
   try {
+    const headers = await getAuthHeader();
     const response = await axios.get(`${API_BASE}/chat/conversations`, {
       headers: {
-        'Authorization': token
+        ...headers,
+        Accept: 'application/json'
       }
     });
 
-    return response.data.map((conv: any) => ({
+    const list = Array.isArray(response.data)
+      ? response.data
+      : response.data.data || [];
+
+    return list.map((conv: any) => ({
       id: conv.id,
       title: conv.headline || `Percakapan ${new Date(conv.created_at).toLocaleDateString()}`,
       createdAt: conv.created_at,
       lastUpdated: conv.updated_at
     }));
-  } catch (error) {
-    console.error('Error getting chat history:', error);
+  } catch (error: any) {
+    console.error('Error getting chat history:', error.response?.data || error.message);
     throw error;
   }
 };
 
 export const getPreviousMessages = async (conversationId: string) => {
-  const token = await getAccessToken();
-  
   try {
+    const headers = await getAuthHeader();
     const response = await axios.get(`${API_BASE}/chat/conversations/${conversationId}`, {
-      headers: {
-        'Authorization': token
-      }
+      headers
     });
-    // Pastikan response.data dan response.data.messages ada
     return response.data?.messages || [];
   } catch (error) {
     console.error('Error getting previous messages:', error);

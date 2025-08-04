@@ -49,7 +49,7 @@ const Header = () => {
         </View>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Del AI</Text>
+      <Text style={styles.title}>EVA AI</Text>
 
       {isLoggedIn ? (
         <>
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 15,
-    paddingTop: 35,
+    paddingTop: 1,
     backgroundColor: '#021526',
   },
   menuButton: {

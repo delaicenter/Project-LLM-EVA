@@ -2,12 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import AppRoutes from './app/navigation/routes';
 import * as SplashScreen from 'expo-splash-screen';
+import { useAuth } from './app/services/Auth/useAuth';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
   const [appReady, setAppReady] = useState(false);
+  const { checkAuth } = useAuth();
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
   useEffect(() => {
     const prepareApp = async () => {
       try {

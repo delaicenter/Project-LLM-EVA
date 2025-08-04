@@ -9,7 +9,7 @@ type Props = {
 const WelcomeCard = ({ onSelectOption }: Props) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Apa yang bisa saya bantu di Toba?</Text>
+      <Text style={styles.title}>Apa yang bisa saya bantu?</Text>
 
       <View style={styles.cardRow}>
         <TouchableOpacity
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 20,
-    bottom:20
+    top:100
   },
   title: {
     fontSize: 20,
@@ -65,7 +65,6 @@ const styles = StyleSheet.create({
   },
   cardText: {
     fontSize: 16,
-    fontWeight: '500',
     color: '#FCFCFCE2',
     textAlign: 'center',
   },

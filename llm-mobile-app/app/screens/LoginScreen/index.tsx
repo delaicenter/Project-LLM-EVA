@@ -7,16 +7,18 @@ import {
   SafeAreaView,
   ScrollView,
   useWindowDimensions,
-  Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/type';
 import { styles } from './style';
 import { loginUser } from '../../services/Auth/auth.service';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../services/Auth/useAuth';
+import { fetchAndCacheChatHistory } from '../../services/Chats/chatHistoryStore';
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
@@ -25,36 +27,30 @@ const LoginScreen = () => {
   const { width, height } = useWindowDimensions();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const { triggerAuthCheck } = useAuth();
 
-  const handleLogin = async () => {
-    setErrorMessage('');
+const handleLogin = async () => {
+  setLoading(true);
+  try {
+    const userData = await loginUser(username, password);
+    await AsyncStorage.setItem('access_token', userData.access_token);
+    await AsyncStorage.setItem('user_info', JSON.stringify(userData));
 
-    if (!username || !password) {
-      setErrorMessage('Username dan password wajib diisi');
-      return;
-    }
+    // Pastikan status login update sebelum navigate
+    await triggerAuthCheck();
 
-    setLoading(true);
-    try {
-      const userData = await loginUser(username, password);
-      console.log('Login berhasil:', userData);
-      navigation.replace("Chat", {});
-    } catch (error: any) {
-      console.error('Login gagal:', error.response?.data || error.message);
-      const detail = error.response?.data?.detail || "Login gagal, periksa username dan password.";
-      setErrorMessage(detail);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = () => {
-    console.log('Google login pressed');
-  };
-
-  const goToSignUp = () => {
-    navigation.navigate('SignUp');
-  };
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Main' }]
+      })
+    );
+  } catch (error) {
+    console.error('Login gagal:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -89,29 +85,30 @@ const LoginScreen = () => {
             value={password}
           />
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
-            <Text style={styles.loginButtonText}>
-              {loading ? 'Logging in...' : 'Login'}
-            </Text>
+          <TouchableOpacity
+            style={[styles.loginButton, loading && { opacity: 0.6 }]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.loginButtonText}>Login</Text>
+            )}
           </TouchableOpacity>
 
           {errorMessage ? (
             <Text style={styles.errorText}>{errorMessage}</Text>
           ) : null}
-
-          <TouchableOpacity onPress={goToSignUp}>
-            <Text style={styles.signupText}>
-              Don’t have an account? <Text style={styles.signupLink}>Sign up here</Text>
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.googleIconButton} onPress={handleGoogleLogin}>
-            <Image
-              source={require('../../../assets/google.png')}
-              style={{ width: 24, height: 24 }}
-            />
-          </TouchableOpacity>
         </ScrollView>
+
+        {/* Loading Overlay */}
+        {loading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#fff" />
+            <Text style={styles.loadingText}>Processing login...</Text>
+          </View>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -10,6 +10,7 @@ import SignUpScreen from '../screens/SignUpScreen';
 import SplashScreen from '../screens/SplashScreen';
 import { RootStackParamList } from './type';
 import ChangePasswordScreen from '../screens/ChangePassword';
+import { useAuth } from '../services/Auth/useAuth';
 
 const Drawer = createDrawerNavigator();
 const Stack = createStackNavigator<RootStackParamList>();
@@ -42,19 +43,21 @@ function MainStack() {
 }
 
 export default function AppRoutes() {
+  const [navKey, setNavKey] = useState(0);
+  const { isLoggedIn } = useAuth();
+
   return (
     <NavigationContainer>
       <Drawer.Navigator
+        key={navKey} // Force re-render on auth changes
         drawerContent={(props) => <SideMenu {...props} />}
         screenOptions={{
           drawerPosition: 'left',
           headerShown: false,
           drawerStyle: {
-            height: '100%',
             backgroundColor: '#021526'
           }
         }}
-        initialRouteName="Main"
       >
         <Drawer.Screen name="Main" component={MainStack} />
       </Drawer.Navigator>

@@ -1,21 +1,60 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState } from 'react-native';
+
+type AuthState = {
+  isLoggedIn: boolean | null;
+  isLoading: boolean;
+  user: any;
+};
 
 export const useAuth = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
-  const [user, setUser] = useState<any>(null);
+  const [authState, setAuthState] = useState<AuthState>({
+    isLoggedIn: null,
+    isLoading: true,
+    user: null
+  });
+
+  const checkAuth = async () => {
+    try {
+      const [token, userInfo] = await Promise.all([
+        AsyncStorage.getItem('access_token'),
+        AsyncStorage.getItem('user_info')
+      ]);
+      
+      setAuthState({
+        isLoggedIn: !!token,
+        isLoading: false,
+        user: userInfo ? JSON.parse(userInfo) : null
+      });
+    } catch (error) {
+      setAuthState({
+        isLoggedIn: false,
+        isLoading: false,
+        user: null
+      });
+    }
+  };
+
+  const triggerAuthCheck = () => {
+    checkAuth();
+  };
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = await AsyncStorage.getItem('access_token');
-      const userInfo = await AsyncStorage.getItem('user_info');
-      setIsLoggedIn(!!token);
-      if (userInfo) setUser(JSON.parse(userInfo));
-    };
-
     checkAuth();
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        checkAuth();
+      }
+    });
+
+    return () => subscription.remove();
   }, []);
 
-  return { isLoggedIn, user };
-
+  return {
+    ...authState,  
+    triggerAuthCheck,
+    checkAuth
+  };
 };
