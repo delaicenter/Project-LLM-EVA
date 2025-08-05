@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   TextInput,
@@ -6,9 +6,11 @@ import {
   StyleSheet,
   Animated,
   Keyboard,
-} from 'react-native';
-import { MaterialIcons as Icon } from '@expo/vector-icons';
-import RecordingModal from './recordModal';
+} from "react-native";
+import { MaterialIcons as Icon } from "@expo/vector-icons";
+import { Audio } from "expo-av";
+import RecordingModal from "./recordModal";
+import { uploadAudio } from "../services/Audio/audio.service";
 
 type MessageInputCardProps = {
   onSend: (message: string) => void;
@@ -16,9 +18,10 @@ type MessageInputCardProps = {
 };
 
 const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingText, setRecordingText] = useState('Mendengarkan...');
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+  const [recordingText, setRecordingText] = useState("Mendengarkan...");
   const slideAnim = useState(new Animated.Value(0))[0];
   const inputRef = useRef<TextInput>(null);
 
@@ -33,32 +36,72 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
   const handleSend = () => {
     if (message.trim()) {
       onSend(message);
-      setMessage('');
+      setMessage("");
       Keyboard.dismiss();
     }
   };
 
-  const startRecording = () => {
-    setIsRecording(true);
-    setRecordingText('Mendengarkan...');
+  const startRecording = async () => {
+    try {
+      console.log("Meminta izin microphone...");
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        alert("Izin microphone dibutuhkan!");
+        return;
+      }
 
-    Animated.timing(slideAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+      console.log("Menyiapkan audio...");
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
 
-    setTimeout(() => setRecordingText('Sedang merekam...'), 1000);
-    setTimeout(() => setRecordingText('Masih mendengarkan...'), 2000);
+      console.log("Mulai merekam...");
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      setRecording(recording);
+      setIsRecording(true);
+      setRecordingText("Mendengarkan...");
+
+      Animated.timing(slideAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+
+      setTimeout(() => setRecordingText("Sedang merekam..."), 1000);
+      setTimeout(() => setRecordingText("Masih mendengarkan..."), 2000);
+    } catch (err) {
+      console.error("Gagal mulai merekam", err);
+    }
   };
 
-  const stopRecording = () => {
+  const stopRecording = async () => {
+    console.log("Stop recording...");
     setIsRecording(false);
     Animated.timing(slideAnim, {
       toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
+
+    try {
+      await recording?.stopAndUnloadAsync();
+      const uri = recording?.getURI();
+      console.log("File audio:", uri);
+
+      if (uri) {
+        const transcript = await uploadAudio(uri);
+        if (transcript) {
+          setMessage(transcript); // ✅ langsung isi ke input
+        }
+      }
+      setRecording(null);
+    } catch (err) {
+      console.error("Gagal stop recording", err);
+    }
   };
 
   return (
@@ -92,9 +135,9 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
               style={styles.iconButton}
             >
               <Icon
-                name={isRecording ? 'mic-off' : 'mic'}
+                name={isRecording ? "mic-off" : "mic"}
                 size={24}
-                color={isRecording ? '#FF3B30' : '#FFFFFF'}
+                color={isRecording ? "#FF3B30" : "#FFFFFF"}
               />
             </TouchableOpacity>
           )}
@@ -106,14 +149,14 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#0D6BDE2A',
+    backgroundColor: "#0D6BDE2A",
     borderRadius: 25,
     paddingHorizontal: 15,
     paddingVertical: 8,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   input: {
     flex: 1,
@@ -121,7 +164,7 @@ const styles = StyleSheet.create({
     maxHeight: 120,
     paddingHorizontal: 10,
     fontSize: 16,
-    color: 'white',
+    color: "white",
     paddingVertical: 8,
   },
   iconContainer: {

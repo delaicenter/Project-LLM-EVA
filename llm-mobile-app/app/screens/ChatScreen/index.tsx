@@ -8,10 +8,9 @@ import ChatBubble from '../../components/chatBubble';
 import ChatLoadingBubble from '../../components/chatLoading';
 import MessageInputCard from '../../components/chatCard';
 import WelcomeCard from '../../components/welcomeCard';
-import { initiateConversation, getPreviousMessages, startChat } from '../../services/Chats/chats.service';
 import { ChatScreenProps } from '../../navigation/type';
 import { useFocusEffect } from '@react-navigation/native';
-
+import { chatService } from '../../services/Chats/chats.service';
 type Message = {
   id: string;
   text: string;
@@ -42,47 +41,43 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   );
 
 
-  useEffect(() => {
-    const initChat = async () => {
-      if (!isLoggedIn) return;
+useEffect(() => {
+  const initChat = async () => {
+    if (!isLoggedIn) return;
 
-      if (paramConversationId) {
-        try {
-          const prevMsgs = await getPreviousMessages(paramConversationId);
+    if (paramConversationId) {
+      try {
+        const prevMsgs = await chatService.getPreviousMessages(paramConversationId);
+        const sortedMsgs = [...prevMsgs].sort(
+          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+        );
 
-          // Urutkan dari paling lama ke terbaru
-          const sortedMsgs = [...prevMsgs].sort(
-            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-          );
+        const formatted = sortedMsgs.map((msg: any) => ({
+          id: msg.id?.toString() ?? Date.now().toString(),
+          text: msg.content || '',
+          isUser: msg.role === 'user',
+          timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }));
+        setMessages(formatted);
+        setConversationId(paramConversationId);
 
-          const formatted = sortedMsgs.map((msg: any) => ({
-            id: msg.id?.toString() ?? Date.now().toString(),
-            text: msg.content || '',
-            isUser: msg.role === 'user',
-            timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          }));
-          setMessages(formatted);
-          setConversationId(paramConversationId);
-
-          // Scroll ke bawah setelah load
-          setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: false }), 100);
-        } catch (err) {
-          console.error('Gagal load chat lama:', err);
-        }
-      } else {
-        // Mode Obrolan Baru
-        setMessages([]);
-        try {
-          const newId = await initiateConversation();
-          setConversationId(newId);
-        } catch (err) {
-          console.error('Gagal bikin percakapan baru:', err);
-        }
+        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: false }), 100);
+      } catch (err) {
+        console.error('Gagal load chat lama:', err);
       }
-    };
+    } else {
+      setMessages([]);
+      try {
+        const newId = await chatService.initiateConversation();
+        setConversationId(newId);
+      } catch (err) {
+        console.error('Gagal bikin percakapan baru:', err);
+      }
+    }
+  };
 
-    initChat();
-  }, [paramConversationId, isLoggedIn]);
+  initChat();
+}, [paramConversationId, isLoggedIn]);
 
   /* Keyboard listener */
   useEffect(() => {
@@ -125,7 +120,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 50);
 
     try {
-      const res = await startChat(message, conversationId || undefined);
+      const res = await chatService.startChat(message, conversationId || undefined);
       if (res.conversationId && !conversationId) {
         setConversationId(res.conversationId);
       }

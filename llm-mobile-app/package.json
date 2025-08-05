@@ -33,7 +33,10 @@
     "react-native-screens": "~4.11.1",
     "react-native-vector-icons": "^10.2.0",
     "expo-navigation-bar": "~4.2.7",
-    "react-native-svg": "15.11.2"
+    "react-native-svg": "15.11.2",
+    "expo-av": "~15.1.7",
+    "expo-audio": "~0.4.8",
+    "expo-file-system": "~18.1.11"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

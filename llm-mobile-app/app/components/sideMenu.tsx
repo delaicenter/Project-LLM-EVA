@@ -19,7 +19,7 @@ import {
 } from '../services/Chats/chatHistoryStore';
 
 const SideMenu = ({ navigation, state }: any) => {
-    const { isLoggedIn, isLoading, user, checkAuth } = useAuth();
+    const { isLoggedIn, isLoading, user } = useAuth();
     const [searchQuery, setSearchQuery] = useState('');
     const [chatHistory, setChatHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -48,7 +48,6 @@ const SideMenu = ({ navigation, state }: any) => {
         }
     };
 
-    // 🔹 Ambil chat saat status login berubah jadi true
     useEffect(() => {
         if (isLoggedIn) {
             setIsInitialLoad(true);
@@ -56,7 +55,6 @@ const SideMenu = ({ navigation, state }: any) => {
         }
     }, [isLoggedIn]);
 
-    // 🔹 Ambil chat setiap menu difokuskan ulang
     useFocusEffect(
         useCallback(() => {
             if (isLoggedIn) {

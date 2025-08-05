@@ -1,104 +1,111 @@
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { getAccessToken } from '../Auth/auth.service';
 
 const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
 
-const getAuthHeader = async () => {
-  const token = await getAccessToken();
-  if (!token) throw new Error('No access token found');
-  return { Authorization: `Bearer ${token}` };
-};
+export interface ChatReply {
+  reply: string;
+  conversationId: string;
+  usedRag: boolean;
+}
 
-export const startChat = async (message: string, conversationId?: string) => {
-  try {
-    const headers = await getAuthHeader();
-    const response = await axios.post(`${API_BASE}/chat/`, {
-      message,
-      conversation_id: conversationId
-    }, {
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json'
-      }
+export interface ChatHistoryItem {
+  id: string;
+  title: string;
+  createdAt: string;
+  lastUpdated: string;
+}
+
+export class ChatService {
+  private api: AxiosInstance;
+
+  constructor() {
+    this.api = axios.create({
+      baseURL: API_BASE,
+      headers: { 'Content-Type': 'application/json' }
     });
 
-    return {
-      reply: response.data.response,
-      conversationId: response.data.conversation_id,
-      usedRag: response.data.used_rag
-    };
-  } catch (error) {
-    console.error('Error in startChat:', error);
-    throw error;
-  }
-};
-
-export const initiateConversation = async () => {
-  try {
-    const headers = await getAuthHeader();
-    const response = await axios.post(`${API_BASE}/chat/initiate`, {}, {
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json'
-      }
+    this.api.interceptors.request.use(async (config) => {
+      const token = await getAccessToken();
+      if (!token) throw new Error('No access token found');
+      config.headers.Authorization = `Bearer ${token}`;
+      return config;
     });
+  }
 
-    return response.data.conversation_id;
-  } catch (error) {
-    console.error('Error initiating conversation:', error);
+  private handleError(error: unknown, context: string): never {
+    if (axios.isAxiosError(error)) {
+      const err = error as AxiosError;
+      console.error(`[ChatService] ${context} failed:`, {
+        status: err.response?.status,
+        data: err.response?.data,
+        message: err.message
+      });
+    } else {
+      console.error(`[ChatService] ${context} failed:`, error);
+    }
     throw error;
   }
-};
 
-export const getConversations = async () => {
-  try {
-    const headers = await getAuthHeader();
-    const response = await axios.get(`${API_BASE}/chat/conversations`, {
-      headers
-    });
+  async startChat(message: string, conversationId?: string): Promise<ChatReply> {
+    try {
+      const { data } = await this.api.post('/chat/', {
+        message,
+        conversation_id: conversationId
+      });
 
-    return response.data;
-  } catch (error) {
-    console.error('Error getting conversations:', error);
-    throw error;
+      return {
+        reply: data.response,
+        conversationId: data.conversation_id,
+        usedRag: data.used_rag
+      };
+    } catch (error) {
+      this.handleError(error, 'startChat');
+    }
   }
-};
 
-export const getChatHistory = async () => {
-  try {
-    const headers = await getAuthHeader();
-    const response = await axios.get(`${API_BASE}/chat/conversations`, {
-      headers: {
-        ...headers,
-        Accept: 'application/json'
-      }
-    });
-
-    const list = Array.isArray(response.data)
-      ? response.data
-      : response.data.data || [];
-
-    return list.map((conv: any) => ({
-      id: conv.id,
-      title: conv.headline || `Percakapan ${new Date(conv.created_at).toLocaleDateString()}`,
-      createdAt: conv.created_at,
-      lastUpdated: conv.updated_at
-    }));
-  } catch (error: any) {
-    console.error('Error getting chat history:', error.response?.data || error.message);
-    throw error;
+  async initiateConversation(): Promise<string> {
+    try {
+      const { data } = await this.api.post('/chat/initiate');
+      return data.conversation_id;
+    } catch (error) {
+      this.handleError(error, 'initiateConversation');
+    }
   }
-};
 
-export const getPreviousMessages = async (conversationId: string) => {
-  try {
-    const headers = await getAuthHeader();
-    const response = await axios.get(`${API_BASE}/chat/conversations/${conversationId}`, {
-      headers
-    });
-    return response.data?.messages || [];
-  } catch (error) {
-    console.error('Error getting previous messages:', error);
-    throw error;
+  async getConversations(): Promise<any[]> {
+    try {
+      const { data } = await this.api.get('/chat/conversations');
+      return data;
+    } catch (error) {
+      this.handleError(error, 'getConversations');
+    }
   }
-};
+
+  async getChatHistory(): Promise<ChatHistoryItem[]> {
+    try {
+      const { data } = await this.api.get('/chat/conversations');
+      const list = Array.isArray(data) ? data : data.data || [];
+
+      return list.map((conv: any) => ({
+        id: conv.id,
+        title: conv.headline || `Percakapan ${new Date(conv.created_at).toLocaleDateString()}`,
+        createdAt: conv.created_at,
+        lastUpdated: conv.updated_at
+      }));
+    } catch (error) {
+      this.handleError(error, 'getChatHistory');
+    }
+  }
+
+  async getPreviousMessages(conversationId: string): Promise<any[]> {
+    try {
+      const { data } = await this.api.get(`/chat/conversations/${conversationId}`);
+      return data?.messages || [];
+    } catch (error) {
+      this.handleError(error, 'getPreviousMessages');
+    }
+  }
+}
+
+export const chatService = new ChatService();
