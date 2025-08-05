@@ -15,48 +15,40 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/type';
 import { styles } from './style';
-import { loginUser } from '../../services/Auth/auth.service';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAuth } from '../../services/Auth/useAuth';
-import { fetchAndCacheChatHistory } from '../../services/Chats/chatHistoryStore';
+import AuthService from '../../services/Auth/auth.service';
+import { useAuth } from '../../services/Auth/AuthContext';
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { width, height } = useWindowDimensions();
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const { triggerAuthCheck } = useAuth();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { width, height } = useWindowDimensions();
+  const { login } = useAuth();
 
-const handleLogin = async () => {
-  setLoading(true);
-  try {
-    const userData = await loginUser(username, password);
-    await AsyncStorage.setItem('access_token', userData.access_token);
-    await AsyncStorage.setItem('user_info', JSON.stringify(userData));
+  const handleLogin = async () => {
+    setErrorMessage('');
 
-    // Pastikan status login update sebelum navigate
-    await triggerAuthCheck();
+    try {
+      await login(username, password);
 
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 0,
-        routes: [{ name: 'Main' }]
-      })
-    );
-  } catch (error) {
-    console.error('Login gagal:', error);
-  } finally {
-    setLoading(false);
-  }
-};
-
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        })
+      );
+    } catch (error) {
+      console.error('Login gagal:', error);
+      setErrorMessage('Login gagal. Periksa kembali username dan password.');
+    }
+  };
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
           contentContainerStyle={[styles.container, { paddingVertical: height * 0.1 }]}
@@ -102,7 +94,6 @@ const handleLogin = async () => {
           ) : null}
         </ScrollView>
 
-        {/* Loading Overlay */}
         {loading && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color="#fff" />

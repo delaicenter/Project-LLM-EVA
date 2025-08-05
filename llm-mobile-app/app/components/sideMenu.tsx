@@ -8,8 +8,7 @@ import {
     ActivityIndicator
 } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
-import { useAuth } from '../services/Auth/useAuth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../services/Auth/AuthContext';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { CommonActions, useFocusEffect } from '@react-navigation/native';
 import {
@@ -73,6 +72,14 @@ const SideMenu = ({ navigation, state }: any) => {
         );
     }
 
+    if (isLoading || isLoggedIn === null) {
+    return (
+        <View style={styles.container}>
+        <ActivityIndicator size="large" color="#FFF" />
+        </View>
+    );
+    }
+
     const handleNewChat = () => {
         navigation.navigate('Main', {
             screen: 'Chat',
@@ -81,20 +88,6 @@ const SideMenu = ({ navigation, state }: any) => {
         navigation.closeDrawer();
     };
 
-    const handleLogout = async () => {
-        try {
-            await AsyncStorage.removeItem('access_token');
-            await AsyncStorage.removeItem('user_info');
-            navigation.dispatch(
-                CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: 'Main', state: { routes: [{ name: 'Login' }] } }]
-                })
-            );
-        } catch (error) {
-            console.error('Failed to logout:', error);
-        }
-    };
 
     const filteredHistory = chatHistory.filter(chat =>
         chat.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -184,18 +177,13 @@ const SideMenu = ({ navigation, state }: any) => {
 
             <View style={styles.footer}>
                 {isLoggedIn ? (
-                    <TouchableOpacity
-                        style={[styles.button, styles.logoutButton]}
-                        onPress={handleLogout}
-                    >
-                        <Text style={styles.buttonText}>Logout</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.footerText}>Developed by IT DEL</Text>
                 ) : (
                     <TouchableOpacity
                         style={[styles.button, styles.loginButton]}
                         onPress={() => navigation.navigate('Login')}
                     >
-                        <Text style={styles.buttonText}>Login</Text>
+                    <Text style={styles.buttonText}>Login</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -272,7 +260,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 10,
         color: '#555',
-        paddingTop: 10,
+        paddingTop: 0,
     },
     loadingContainer: {
         flex: 1,
@@ -323,10 +311,21 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     footer: {
-        paddingVertical: 12,
-        paddingHorizontal: 10,
+        marginTop: 20,
         alignItems: 'center',
-        marginTop: 'auto',
+        paddingVertical: 10,
+    },
+    separator: {
+        borderBottomColor: '#ccc',
+        borderBottomWidth: 1,
+        width: '90%',
+        marginBottom: 8,
+    },
+    footerText: {
+        fontSize: 14,
+        color: '#888',
+        fontStyle: 'italic',
+        marginBottom: 8,
     },
     button: {
         padding: 12,
