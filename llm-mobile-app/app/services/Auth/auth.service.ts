@@ -1,37 +1,45 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import qs from 'qs';
 
 const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
 
-export const loginUser = async (username: string, password: string) => {
-  console.log('LOGIN STARTED:', { username, password });
+class AuthService {
+  static token: string | null = null;
 
-  try {
-    const payload = qs.stringify({ username, password });
+  static async loginUser(username: string, password: string) {
+    try {
+      const response = await axios.post(`${API_BASE}/auth/login`, {
+        username,
+        password,
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    console.log('LOGIN PAYLOAD:', payload);
+      const data = response.data;
 
-    const response = await axios.post(`${API_BASE}/auth/token`, payload, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
+      AuthService.token = data.access_token;
+      await AsyncStorage.setItem('access_token', data.access_token);
+      await AsyncStorage.setItem('user_info', JSON.stringify(data));
 
-    const data = response.data;
-
-    console.log('LOGIN SUCCESS:', data);
-
-    await AsyncStorage.setItem('access_token', data.access_token);
-    await AsyncStorage.setItem('user_info', JSON.stringify(data));
-
-    return data;
-  } catch (error:any) {
-    console.error('LOGIN ERROR:', error.response?.data || error.message);
-    throw error;
+      return data;
+    } catch (error: any) {
+      console.error('LOGIN ERROR:', error.response?.data || error.message);
+      throw error;
+    }
   }
-};
 
+  static async getToken(): Promise<string | null> {
+    if (AuthService.token) {
+      return AuthService.token;
+    }
+
+    const storedToken = await AsyncStorage.getItem('access_token');
+    AuthService.token = storedToken;
+    return storedToken;
+  }
+}
 
 export const signupUser = async (
   username: string,
@@ -100,3 +108,5 @@ export const changePassword = async (
 
   return response.data;
 };
+
+export default AuthService;
