@@ -11,6 +11,7 @@ import WelcomeCard from '../../components/welcomeCard';
 import { ChatScreenProps } from '../../navigation/type';
 import { useFocusEffect } from '@react-navigation/native';
 import { chatService } from '../../services/Chats/chats.service';
+import { useChatHistory } from '../../services/Chats/ChatHistoryContext';
 type Message = {
   id: string;
   text: string;
@@ -28,6 +29,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
+  const { setChatHistory, moveChatToTop } = useChatHistory();
 
   const resetchat = () => {
     setMessages([]);
@@ -119,29 +121,38 @@ useEffect(() => {
     // Scroll ke bawah setelah kirim
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 50);
 
-    try {
-      const res = await chatService.startChat(message, conversationId || undefined);
-      if (res.conversationId && !conversationId) {
-        setConversationId(res.conversationId);
-      }
+try {
+  const res = await chatService.startChat(message, conversationId || undefined);
 
-      setMessages((prev) => prev.filter((m) => m.id !== loadingMsg.id));
+  const { replyData, updatedHistory } = res;
 
-      const reply: Message = {
-        id: Date.now().toString() + '-bot',
-        text: res.reply || 'Tidak ada balasan.',
-        isUser: false,
-        isTyping: true,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      };
-      setMessages((prev) => [...prev.map((m) => ({ ...m, isTyping: false })), reply]);
+  if (replyData.conversationId && !conversationId) {
+    setConversationId(replyData.conversationId);
+  }
 
-      // Scroll lagi ke bawah setelah bot balas
-      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
-    } catch (err) {
-      console.error('Error kirim pesan:', err);
-      setMessages((prev) => prev.filter((m) => m.id !== loadingMsg.id));
-    }
+  setMessages((prev) => prev.filter((m) => m.id !== loadingMsg.id));
+
+  const reply: Message = {
+    id: Date.now().toString() + '-bot',
+    text: replyData.reply || 'Tidak ada balasan.',
+    isUser: false,
+    isTyping: true,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  };
+  setMessages((prev) => [...prev.map((m) => ({ ...m, isTyping: false })), reply]);
+
+  // Scroll ke bawah setelah balasan
+  setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+
+  setChatHistory(updatedHistory);
+    if (conversationId) {
+    moveChatToTop(conversationId);
+  } 
+} catch (err) {
+  console.error('Error kirim pesan:', err);
+  setMessages((prev) => prev.filter((m) => m.id !== loadingMsg.id));
+}
+
   };
 
   return (

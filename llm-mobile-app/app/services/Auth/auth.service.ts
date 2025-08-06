@@ -1,7 +1,9 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { EVA_API_URL } from '@env';
 
-const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
+// const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
+const API_BASE = EVA_API_URL;
 
 class AuthService {
   static token: string | null = null;

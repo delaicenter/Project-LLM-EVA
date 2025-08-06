@@ -4,6 +4,7 @@ import AppRoutes from './app/navigation/routes';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from './app/services/Auth/AuthContext'; // Pastikan path sesuai
 import { useAuth } from './app/services/Auth/useAuth';
+import { ChatHistoryProvider } from './app/services/Chats/ChatHistoryContext';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -12,7 +13,7 @@ function MainApp() {
   const { checkAuth } = useAuth();
 
   useEffect(() => {
-    checkAuth(); // Mengecek status login
+    checkAuth(); 
   }, []);
 
   useEffect(() => {
@@ -43,7 +44,9 @@ function MainApp() {
 export default function App() {
   return (
     <AuthProvider>
-      <MainApp />
+      <ChatHistoryProvider>
+        <MainApp />
+      </ChatHistoryProvider>
     </AuthProvider>
   );
 }

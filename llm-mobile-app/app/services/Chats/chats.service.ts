@@ -1,7 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { getAccessToken } from '../Auth/auth.service';
+import { EVA_API_URL } from '@env';
 
-const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
+// const API_BASE = 'https://eva.del.ac.id/api/proxy/api';
+const API_BASE = EVA_API_URL;
 
 export interface ChatReply {
   reply: string;
@@ -47,17 +49,22 @@ export class ChatService {
     throw error;
   }
 
-  async startChat(message: string, conversationId?: string): Promise<ChatReply> {
+  async startChat(message: string, conversationId?: string): Promise<{ replyData: ChatReply, updatedHistory: ChatHistoryItem[] }> {
     try {
       const { data } = await this.api.post('/chat/', {
         message,
         conversation_id: conversationId
       });
 
+      const history = await this.getChatHistory();
+
       return {
-        reply: data.response,
-        conversationId: data.conversation_id,
-        usedRag: data.used_rag
+        replyData: {
+          reply: data.response,
+          conversationId: data.conversation_id,
+          usedRag: data.used_rag
+        },
+        updatedHistory: history
       };
     } catch (error) {
       this.handleError(error, 'startChat');

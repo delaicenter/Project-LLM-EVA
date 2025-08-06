@@ -10,5 +10,6 @@ export const fetchAndCacheChatHistory = async () => {
   return history;
 };
 
+
 export const getCachedChatHistory = () => chatHistoryCache;
 export const chatHistoryIsCached = () => hasFetchedOnce;

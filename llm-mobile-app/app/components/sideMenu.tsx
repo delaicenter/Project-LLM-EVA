@@ -1,82 +1,44 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    TextInput,
-    ActivityIndicator
+    View, Text, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator
 } from 'react-native';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useAuth } from '../services/Auth/AuthContext';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
-import { CommonActions, useFocusEffect } from '@react-navigation/native';
-import {
-    chatHistoryIsCached,
-    fetchAndCacheChatHistory,
-    getCachedChatHistory
-} from '../services/Chats/chatHistoryStore';
+import { useFocusEffect } from '@react-navigation/native';
+import { useChatHistory } from '../services/Chats/ChatHistoryContext';
+import { RefreshControl } from 'react-native';
 
 const SideMenu = ({ navigation, state }: any) => {
     const { isLoggedIn, isLoading, user } = useAuth();
+    const { chatHistory, refreshChatHistory } = useChatHistory();
+
     const [searchQuery, setSearchQuery] = useState('');
-    const [chatHistory, setChatHistory] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [isInitialLoad, setIsInitialLoad] = useState(true);
 
     const activeRoute = state?.routes[0]?.state?.routes.find(
         (route: any) => route.name === 'Chat'
     );
     const activeConversationId = activeRoute?.params?.conversationId;
-
-    const fetchChatHistory = async () => {
-        try {
-            setLoading(true);
-            if (chatHistoryIsCached()) {
-                setChatHistory(getCachedChatHistory());
-            } else {
-                const history = await fetchAndCacheChatHistory();
-                setChatHistory(history);
-            }
-        } catch (err) {
-            setError('Failed to load chat history');
-        } finally {
-            setLoading(false);
-            setIsInitialLoad(false);
-        }
-    };
-
-    useEffect(() => {
-        if (isLoggedIn) {
-            setIsInitialLoad(true);
-            fetchChatHistory();
-        }
-    }, [isLoggedIn]);
+    const currentYear = new Date().getFullYear();
 
     useFocusEffect(
         useCallback(() => {
-            if (isLoggedIn) {
-                fetchChatHistory();
-            }
+            const refresh = async () => {
+                try {
+                    setLoading(true);
+                    await refreshChatHistory();
+                } catch {
+                    setError('Failed to refresh chat history');
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            if (isLoggedIn) refresh();
         }, [isLoggedIn])
     );
-
-    if (isLoading) {
-        return (
-            <View style={styles.container}>
-                <ActivityIndicator size="large" color="#FFF" />
-            </View>
-        );
-    }
-
-    if (isLoading || isLoggedIn === null) {
-    return (
-        <View style={styles.container}>
-        <ActivityIndicator size="large" color="#FFF" />
-        </View>
-    );
-    }
 
     const handleNewChat = () => {
         navigation.navigate('Main', {
@@ -86,10 +48,17 @@ const SideMenu = ({ navigation, state }: any) => {
         navigation.closeDrawer();
     };
 
-
-    const filteredHistory = chatHistory.filter(chat =>
-        chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredHistory = chatHistory.filter((chat: any) =>
+        (chat.title ?? '').toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    if (isLoading || isLoggedIn === null) {
+        return (
+            <View style={styles.container}>
+                <ActivityIndicator size="large" color="#FFF" />
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
@@ -105,7 +74,7 @@ const SideMenu = ({ navigation, state }: any) => {
                             <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
                             <TextInput
                                 style={styles.searchInput}
-                                placeholder="Search chat history..."
+                                placeholder="Cari riwayat obrolan..."
                                 value={searchQuery}
                                 onChangeText={setSearchQuery}
                                 placeholderTextColor="#03346E"
@@ -114,40 +83,48 @@ const SideMenu = ({ navigation, state }: any) => {
 
                         <TouchableOpacity style={styles.newChatButton} onPress={handleNewChat}>
                             <Icon name="add" size={20} color="#fff" />
-                            <Text style={styles.newChatButtonText}>New Chat</Text>
+                            <Text style={styles.newChatButtonText}>Obrolan Baru</Text>
                         </TouchableOpacity>
                     </View>
 
                     <DrawerContentScrollView
                         style={styles.scrollView}
                         contentContainerStyle={styles.scrollContent}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={loading}
+                                onRefresh={refreshChatHistory}
+                                tintColor="#ffffff"
+                            />
+                        }
                     >
                         <View style={styles.historySection}>
-                            <Text style={styles.sectionTitle}>Chat History</Text>
+                            <Text style={styles.sectionTitle}>Riwayat Obrolan</Text>
 
-                            {loading && isInitialLoad ? (
-                                <View style={styles.loadingContainer}>
-                                    <ActivityIndicator size="large" color="#ffffff" />
-                                    <Text style={styles.loadingText}>Loading your chats...</Text>
-                                </View>
+                            {loading && filteredHistory.length === 0 ? (
+                                <Text style={styles.loadingText}>Refreshing...</Text>
                             ) : error ? (
                                 <Text style={styles.errorText}>{error}</Text>
                             ) : filteredHistory.length === 0 ? (
-                                <Text style={styles.emptyText}>No chat history</Text>
+                                <Text style={styles.emptyText}>Tidak ada riwayat obrolan</Text>
                             ) : (
-                                filteredHistory.map(chat => (
+                                filteredHistory.map((chat: any) => (
                                     <TouchableOpacity
                                         key={chat.id}
                                         style={[
                                             styles.chatItem,
                                             chat.id === activeConversationId && styles.activeChatItem
                                         ]}
-                                        onPress={() =>
+                                        onPress={() => {
                                             navigation.navigate('Main', {
                                                 screen: 'Chat',
-                                                params: { conversationId: chat.id, title: chat.title }
-                                            })
-                                        }
+                                                params: {
+                                                conversationId: chat.id,
+                                                title: chat.title,
+                                            },
+                                        });
+                                            navigation.closeDrawer();
+                                        }}
                                     >
                                         <Text
                                             style={[
@@ -175,13 +152,12 @@ const SideMenu = ({ navigation, state }: any) => {
 
             <View style={styles.footer}>
                 {isLoggedIn ? (
-                    <Text style={styles.footerText}>Developed by IT DEL</Text>
-                ) : (
+                     <Text style={styles.footerText}>© {currentYear} IT DEL. All rights reserved.</Text>                ) : (
                     <TouchableOpacity
                         style={[styles.button, styles.loginButton]}
                         onPress={() => navigation.navigate('Login')}
                     >
-                    <Text style={styles.buttonText}>Login</Text>
+                        <Text style={styles.buttonText}>Login</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -320,10 +296,11 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     footerText: {
-        fontSize: 14,
-        color: '#888',
+        color: '#ffffff',
+        fontSize: 13,
         fontStyle: 'italic',
-        marginBottom: 8,
+        letterSpacing: 0.5,
+        opacity: 0.7,
     },
     button: {
         padding: 12,
