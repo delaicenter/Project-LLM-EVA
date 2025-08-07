@@ -48,9 +48,42 @@ const SideMenu = ({ navigation, state }: any) => {
         navigation.closeDrawer();
     };
 
+    
+    const groupChatsSmart = (chats: any[]) => {
+        const now = new Date();
+        const grouped: { [key: string]: any[] } = {};
+
+        chats.forEach(chat => {
+            const date = new Date(chat.lastUpdated || chat.createdAt);
+            const diffInDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+
+            let key = '';
+
+            if (diffInDays < 30) {
+                const weekIndex = Math.floor(diffInDays / 7);
+                if (weekIndex === 0) key = 'Minggu Ini';
+                else if (weekIndex === 1) key = 'Minggu Lalu';
+                else key = `${weekIndex} Minggu Lalu`;
+            } else {
+                const monthYear = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                key = monthYear;
+            }
+
+            if (!grouped[key]) {
+                grouped[key] = [];
+            }
+            grouped[key].push(chat);
+        });
+
+        return grouped;
+    };
+
+
     const filteredHistory = chatHistory.filter((chat: any) =>
         (chat.title ?? '').toLowerCase().includes(searchQuery.toLowerCase())
     );
+    
+    const groupedChats = groupChatsSmart(filteredHistory);
 
     if (isLoading || isLoggedIn === null) {
         return (
@@ -100,6 +133,7 @@ const SideMenu = ({ navigation, state }: any) => {
                     >
                         <View style={styles.historySection}>
                             <Text style={styles.sectionTitle}>Riwayat Obrolan</Text>
+                            <View style={styles.separator} />
 
                             {loading && filteredHistory.length === 0 ? (
                                 <Text style={styles.loadingText}>Refreshing...</Text>
@@ -108,37 +142,46 @@ const SideMenu = ({ navigation, state }: any) => {
                             ) : filteredHistory.length === 0 ? (
                                 <Text style={styles.emptyText}>Tidak ada riwayat obrolan</Text>
                             ) : (
-                                filteredHistory.map((chat: any) => (
-                                    <TouchableOpacity
-                                        key={chat.id}
-                                        style={[
-                                            styles.chatItem,
-                                            chat.id === activeConversationId && styles.activeChatItem
-                                        ]}
-                                        onPress={() => {
-                                            navigation.navigate('Main', {
-                                                screen: 'Chat',
-                                                params: {
-                                                conversationId: chat.id,
-                                                title: chat.title,
-                                            },
-                                        });
-                                            navigation.closeDrawer();
-                                        }}
-                                    >
-                                        <Text
-                                            style={[
-                                                styles.chatItemText,
-                                                chat.id === activeConversationId && styles.activeChatItemText
-                                            ]}
-                                            numberOfLines={1}
-                                        >
-                                            {chat.title}
-                                        </Text>
-                                        <Text style={styles.chatDateText}>
-                                            {new Date(chat.lastUpdated || chat.createdAt).toLocaleDateString()}
-                                        </Text>
-                                    </TouchableOpacity>
+                                Object.entries(groupedChats).map(([label, chats], index) => (
+                                    <View key={label}>
+                                        {index !== 0 && <View style={styles.separator} />}
+                                        <View style={styles.groupLabelWrapper}>
+                                            <Text style={styles.groupLabel} >{label}</Text>
+                                        </View>
+
+                                        {chats.map((chat: any) => (
+                                            <TouchableOpacity
+                                                key={chat.id}
+                                                style={[
+                                                    styles.chatItem,
+                                                    chat.id === activeConversationId && styles.activeChatItem
+                                                ]}
+                                                onPress={() => {
+                                                    navigation.navigate('Main', {
+                                                        screen: 'Chat',
+                                                        params: {
+                                                            conversationId: chat.id,
+                                                            title: chat.title,
+                                                        },
+                                                    });
+                                                    navigation.closeDrawer();
+                                                }}
+                                            >
+                                                <Text
+                                                    style={[
+                                                        styles.chatItemText,
+                                                        chat.id === activeConversationId && styles.activeChatItemText
+                                                    ]}
+                                                    numberOfLines={1}
+                                                >
+                                                    {chat.title}
+                                                </Text>
+                                                <Text style={styles.chatDateText}>
+                                                    {new Date(chat.lastUpdated || chat.createdAt).toLocaleDateString()}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
                                 ))
                             )}
                         </View>
@@ -290,11 +333,11 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
     },
     separator: {
-        borderBottomColor: '#ccc',
+        borderBottomColor: '#444',
         borderBottomWidth: 1,
-        width: '90%',
-        marginBottom: 8,
-    },
+        marginVertical: 10,
+        marginHorizontal: 10,
+    },  
     footerText: {
         color: '#ffffff',
         fontSize: 13,
@@ -325,9 +368,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         padding: 20,
     },
+    
     loginText: {
         fontSize: 16,
         color: '#666',
+        textAlign: 'center',
+    },
+    groupLabelWrapper: {
+        backgroundColor: 'rgba(90, 90, 90, 0.05)',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        marginHorizontal: 10,    
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+    groupLabel: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14,
         textAlign: 'center',
     },
 });

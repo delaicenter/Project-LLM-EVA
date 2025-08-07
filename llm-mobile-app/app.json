@@ -21,7 +21,11 @@
         "backgroundColor": "#021526"
       },
       "edgeToEdgeEnabled": false,
-      "package": "com.edwardtua.llmmobileapp"
+      "package": "com.edwardtua.llmmobileapp",
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -37,6 +41,11 @@
         }
       ],
       "expo-audio"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "30e9055d-7ce2-4e31-9ff5-8583d32fa2ad"
+      }
+    }
   }
 }

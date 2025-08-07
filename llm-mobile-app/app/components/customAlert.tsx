@@ -6,7 +6,7 @@ interface CustomAlertProps {
   title: string;
   message: string;
   onClose: () => void;
-  type?: 'success' | 'error'; // tambah type
+  type?: 'success' | 'error'; 
 }
 
 const CustomAlert: React.FC<CustomAlertProps> = ({
@@ -14,9 +14,9 @@ const CustomAlert: React.FC<CustomAlertProps> = ({
   title,
   message,
   onClose,
-  type = 'success' // default success
+  type = 'success'
 }) => {
-  const color = type === 'error' ? '#FF3B30' : '#28A745'; // merah untuk error, hijau untuk success
+  const color = type === 'error' ? '#FF3B30' : '#28A745';
 
   return (
     <Modal transparent visible={visible} animationType="fade">

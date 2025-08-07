@@ -84,9 +84,13 @@ useEffect(() => {
   /* Keyboard listener */
   useEffect(() => {
     const showSub = Keyboard.addListener(
-      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
-      (e) => setKeyboardHeight(e.endCoordinates.height)
-    );
+    Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+    () => {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 20);
+    }
+  );
     const hideSub = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
       () => setKeyboardHeight(0)
@@ -164,6 +168,7 @@ try {
         <ScrollView
           ref={scrollViewRef}
           style={styles.chatContainer}
+          contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
         >
