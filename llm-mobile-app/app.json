@@ -8,8 +8,6 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "",
-      "resizeMode": "contain",
       "backgroundColor": "#021526"
     },
     "ios": {
@@ -30,7 +28,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "owner": "william31",
+    "owner": "edwardtua",
     "plugins": [
       [
         "expo-build-properties",
@@ -42,10 +40,6 @@
       ],
       "expo-audio"
     ],
-    "extra": {
-      "eas": {
-        "projectId": "30e9055d-7ce2-4e31-9ff5-8583d32fa2ad"
-      }
-    }
+    "extra": {}
   }
 }
