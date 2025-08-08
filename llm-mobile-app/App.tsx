@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, StatusBar } from 'react-native';
 import AppRoutes from './app/navigation/routes';
 import * as SplashScreen from 'expo-splash-screen';
-import { AuthProvider } from './app/services/Auth/AuthContext'; // Pastikan path sesuai
+import { AuthProvider } from './app/services/Auth/AuthContext'; 
 import { useAuth } from './app/services/Auth/useAuth';
 import { ChatHistoryProvider } from './app/services/Chats/ChatHistoryContext';
 

@@ -4,26 +4,28 @@
     "slug": "llm-mobile-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/eva.png",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "backgroundColor": "#021526"
+      "image": "./assets/transparan.png",
+      "backgroundColor": "#02152600",
+      "resizeMode": "contain"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/eva.png",
         "backgroundColor": "#021526"
       },
       "edgeToEdgeEnabled": false,
-      "package": "com.edwardtua.llmmobileapp",
       "permissions": [
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
-      ]
+      ],
+      "package": "com.edwardtua.llmmobileapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -40,6 +42,10 @@
       ],
       "expo-audio"
     ],
-    "extra": {}
+    "extra": {
+      "eas": {
+        "projectId": "a6111b53-0ad2-49dc-9a0f-6dd73034bcf2"
+      }
+    }
   }
 }

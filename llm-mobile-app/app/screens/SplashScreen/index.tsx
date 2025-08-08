@@ -1,14 +1,9 @@
-// file: src/screens/Splash/SplashScreen.js
-
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, Dimensions, StyleSheet, Easing } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Circle } from 'react-native-svg';
 import { RootStackParamList } from '../../navigation/type';
-
-// `useAuth` sudah tidak diperlukan lagi di sini.
-// import { useAuth } from '../../services/Auth/useAuth';
 
 const { width } = Dimensions.get('window');
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
