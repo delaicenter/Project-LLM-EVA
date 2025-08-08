@@ -1,3 +1,4 @@
+// ✅ CustomAlert.tsx (sudah ditingkatkan untuk konfirmasi juga)
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -5,31 +6,65 @@ interface CustomAlertProps {
   visible: boolean;
   title: string;
   message: string;
+  type?: 'success' | 'error' | 'confirm';
+  onConfirm?: () => void;
   onClose: () => void;
-  type?: 'success' | 'error'; 
 }
 
 const CustomAlert: React.FC<CustomAlertProps> = ({
   visible,
   title,
   message,
+  type = 'success',
+  onConfirm,
   onClose,
-  type = 'success'
 }) => {
-  const color = type === 'error' ? '#FF3B30' : '#28A745';
+  const color = type === 'error' ? '#FF3B30' : type === 'confirm' ? '#007AFF' : '#28A745';
 
   return (
-    <Modal transparent visible={visible} animationType="fade">
-      <View style={styles.overlay}>
-        <View style={styles.alertBox}>
-          <Text style={[styles.alertTitle, { color }]}>{title}</Text>
-          <Text style={styles.alertMessage}>{message}</Text>
-          <TouchableOpacity style={[styles.okButton, { backgroundColor: color }]} onPress={onClose}>
+  <Modal transparent visible={visible} animationType="fade">
+    <TouchableOpacity
+      activeOpacity={1}
+      onPress={onClose}
+      style={styles.overlay}
+    >
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => {}} 
+        style={styles.alertBox}
+      >
+        <Text style={[styles.alertTitle, { color }]}>{title}</Text>
+        <Text style={styles.alertMessage}>{message}</Text>
+
+        {type === 'confirm' ? (
+          <View style={styles.buttonGroup}>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: '#ccc' }]}
+              onPress={onClose}
+            >
+              <Text style={styles.okButtonText}>Batal</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: color }]}
+              onPress={onConfirm}
+            >
+              <Text style={styles.okButtonText}>Hapus</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: color }]}
+            onPress={() => {
+              onConfirm?.();
+              onClose();
+            }}
+          >
             <Text style={styles.okButtonText}>OK</Text>
           </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
+        )}
+      </TouchableOpacity>
+    </TouchableOpacity>
+  </Modal>
   );
 };
 
@@ -59,15 +94,20 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  okButton: {
+  button: {
     borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 25,
+    marginHorizontal: 5,
   },
   okButtonText: {
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  buttonGroup: {
+    flexDirection: 'row',
+    gap: 10,
   },
 });
 

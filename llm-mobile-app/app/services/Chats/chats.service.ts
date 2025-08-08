@@ -113,6 +113,16 @@ export class ChatService {
       this.handleError(error, 'getPreviousMessages');
     }
   }
+
+  async deleteConversation(conversationId: string): Promise<string> {
+    try {
+      const { data } = await this.api.delete(`/chat/conversations/${conversationId}`);
+      return data.detail; 
+    } catch (error) {
+      this.handleError(error, 'deleteConversation');
+    }
+  }
+
 }
 
 export const chatService = new ChatService();

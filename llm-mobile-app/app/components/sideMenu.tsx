@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import {
     View, Text, TouchableOpacity, StyleSheet, TextInput, ActivityIndicator
 } from 'react-native';
@@ -7,11 +7,18 @@ import { useAuth } from '../services/Auth/AuthContext';
 import { MaterialIcons as Icon } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { useChatHistory } from '../services/Chats/ChatHistoryContext';
+import { chatService } from '../services/Chats/chats.service';
 import { RefreshControl } from 'react-native';
+import CustomAlert from '../components/customAlert';
+import { Swipeable } from 'react-native-gesture-handler';
+import { Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { Animated } from 'react-native';
 
 const SideMenu = ({ navigation, state }: any) => {
     const { isLoggedIn, isLoading, user } = useAuth();
     const { chatHistory, refreshChatHistory } = useChatHistory();
+    const openSwipeableRef = useRef<Swipeable | null>(null);
+    const swipeableRefs = useRef<{ [key: string]: Swipeable | null }>({});
 
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(false);
@@ -22,6 +29,61 @@ const SideMenu = ({ navigation, state }: any) => {
     );
     const activeConversationId = activeRoute?.params?.conversationId;
     const currentYear = new Date().getFullYear();
+
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
+    const [showActionMenuForId, setShowActionMenuForId] = useState<string | null>(null);
+
+    const confirmDelete = (chatId: string) => {
+        setSelectedChatId(chatId);
+        setShowDeleteConfirm(true);
+    };
+
+    const handleDeletePress = (chatId: string) => {
+        setSelectedChatId(chatId);
+        setShowDeleteConfirm(true);
+        setShowActionMenuForId(null);
+    };
+
+        const closeSwipeable = () => {
+    if (openSwipeableRef.current) {
+        openSwipeableRef.current.close();
+        openSwipeableRef.current = null;
+    }
+    };
+
+    const renderLeftActions = (
+    progress: Animated.AnimatedInterpolation<string | number>,
+    dragX: Animated.AnimatedInterpolation<string | number>,
+    chatId: string
+    ) => {
+    const scale = dragX.interpolate({
+        inputRange: [0, 100],
+        outputRange: [0, 1],
+        extrapolate: 'clamp',
+    });
+
+    return (
+        <TouchableOpacity onPress={() => handleDeletePress(chatId)}>
+        <Animated.View style={[styles.deleteSwipe, { transform: [{ scale }] }]}>
+            <Icon name="delete" size={30} color="#fff" />
+        </Animated.View>
+        </TouchableOpacity>
+    );
+    };
+
+    const deleteChat = async () => {
+    if (selectedChatId) {
+        try {
+        await chatService.deleteConversation(selectedChatId);
+        refreshChatHistory(); 
+        } catch (err) {
+        console.error(err);
+        }
+        setSelectedChatId(null);
+        setShowDeleteConfirm(false);
+    }
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -38,6 +100,14 @@ const SideMenu = ({ navigation, state }: any) => {
 
             if (isLoggedIn) refresh();
         }, [isLoggedIn])
+    );
+    
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+            setShowActionMenuForId(null); 
+            };
+        }, [])
     );
 
     const handleNewChat = () => {
@@ -94,7 +164,14 @@ const SideMenu = ({ navigation, state }: any) => {
     }
 
     return (
-        <View style={styles.container}>
+    <TouchableWithoutFeedback
+        onPress={() => {
+        Keyboard.dismiss();
+        closeSwipeable();  
+        }}
+    >
+    <View style={styles.container}>
+              <View style={styles.container}>
             {isLoggedIn ? (
                 <>
                     <View style={styles.fixedSection}>
@@ -150,27 +227,42 @@ const SideMenu = ({ navigation, state }: any) => {
                                         </View>
 
                                         {chats.map((chat: any) => (
-                                            <TouchableOpacity
+                                            <Swipeable
+                                                friction={2}
                                                 key={chat.id}
-                                                style={[
-                                                    styles.chatItem,
-                                                    chat.id === activeConversationId && styles.activeChatItem
-                                                ]}
+                                                    renderLeftActions={(progress, dragX) =>
+                                                        renderLeftActions(progress, dragX, chat.id)
+                                                    }
+                                                    onSwipeableWillOpen={() => {
+                                                        if (openSwipeableRef.current && openSwipeableRef.current !== swipeableRefs.current[chat.id]) {
+                                                        openSwipeableRef.current.close();
+                                                        }
+                                                    }}
+                                                    onSwipeableOpen={() => {
+                                                        // Simpan referensi swipeable yang sedang terbuka
+                                                        openSwipeableRef.current = swipeableRefs.current[chat.id];
+                                                    }}
+                                                    ref={(ref) => {
+                                                        swipeableRefs.current[chat.id] = ref;
+                                                    }}
+                                                >
+                                                <TouchableOpacity
+                                                style={styles.chatItem}
                                                 onPress={() => {
                                                     navigation.navigate('Main', {
-                                                        screen: 'Chat',
-                                                        params: {
-                                                            conversationId: chat.id,
-                                                            title: chat.title,
-                                                        },
+                                                    screen: 'Chat',
+                                                    params: {
+                                                        conversationId: chat.id,
+                                                        title: chat.title,
+                                                    },
                                                     });
                                                     navigation.closeDrawer();
                                                 }}
-                                            >
+                                                >
                                                 <Text
                                                     style={[
-                                                        styles.chatItemText,
-                                                        chat.id === activeConversationId && styles.activeChatItemText
+                                                    styles.chatItemText,
+                                                    chat.id === activeConversationId && styles.activeChatItemText
                                                     ]}
                                                     numberOfLines={1}
                                                 >
@@ -179,8 +271,9 @@ const SideMenu = ({ navigation, state }: any) => {
                                                 <Text style={styles.chatDateText}>
                                                     {new Date(chat.lastUpdated || chat.createdAt).toLocaleDateString()}
                                                 </Text>
-                                            </TouchableOpacity>
-                                        ))}
+                                                </TouchableOpacity>
+                                            </Swipeable>
+                                            ))}
                                     </View>
                                 ))
                             )}
@@ -204,7 +297,21 @@ const SideMenu = ({ navigation, state }: any) => {
                     </TouchableOpacity>
                 )}
             </View>
+
+            <CustomAlert
+                visible={showDeleteConfirm}
+                title="Konfirmasi Hapus"
+                message="Yakin ingin menghapus percakapan ini?"
+                onClose={() => {
+                    setShowDeleteConfirm(false);
+                    setSelectedChatId(null);
+                }}
+                onConfirm={deleteChat}
+                type="error"
+            />
         </View>
+    </View>
+    </TouchableWithoutFeedback>
     );
 };
 
@@ -389,6 +496,21 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         fontSize: 14,
         textAlign: 'center',
+    },
+    deleteSwipe: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 64,
+    paddingVertical: 10,
+    borderRadius: 8,
+    },
+
+    deleteText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+    marginTop: 4,
     },
 });
 
