@@ -13,6 +13,7 @@ import CustomAlert from '../components/customAlert';
 import { Swipeable } from 'react-native-gesture-handler';
 import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Animated } from 'react-native';
+import { FlatList } from 'react-native';
 
 const SideMenu = ({ navigation, state }: any) => {
     const { isLoggedIn, isLoading, user } = useAuth();
@@ -38,6 +39,18 @@ const SideMenu = ({ navigation, state }: any) => {
         setSelectedChatId(chatId);
         setShowDeleteConfirm(true);
     };
+    
+    const handleRefresh = async () => {
+        if (loading) return;
+        setLoading(true);
+        try {
+        await refreshChatHistory();
+        } catch {
+        setError('Failed to refresh chat history');
+        } finally {
+        setLoading(false);
+        }
+  };
 
     const handleDeletePress = (chatId: string) => {
         setSelectedChatId(chatId);
@@ -73,35 +86,28 @@ const SideMenu = ({ navigation, state }: any) => {
     };
 
     const deleteChat = async () => {
-    if (selectedChatId) {
-        try {
-        await chatService.deleteConversation(selectedChatId);
-        refreshChatHistory(); 
-        } catch (err) {
-        console.error(err);
+        if (selectedChatId) {
+            try {
+                await chatService.deleteConversation(selectedChatId);
+                await handleRefresh();
+            } catch (err) {
+                console.error(err);
+            }
+                setSelectedChatId(null);
+                setShowDeleteConfirm(false);
         }
-        setSelectedChatId(null);
-        setShowDeleteConfirm(false);
-    }
     };
 
     useFocusEffect(
-        useCallback(() => {
-            const refresh = async () => {
-                try {
-                    setLoading(true);
-                    await refreshChatHistory();
-                } catch {
-                    setError('Failed to refresh chat history');
-                } finally {
-                    setLoading(false);
-                }
-            };
+    useCallback(() => {
+        const timeout = setTimeout(() => {
+        if (isLoggedIn) handleRefresh();
+        }, 300);
 
-            if (isLoggedIn) refresh();
-        }, [isLoggedIn])
+        return () => clearTimeout(timeout);
+    }, [isLoggedIn])
     );
-    
+ 
     useFocusEffect(
         useCallback(() => {
             return () => {
@@ -201,11 +207,7 @@ const SideMenu = ({ navigation, state }: any) => {
                         style={styles.scrollView}
                         contentContainerStyle={styles.scrollContent}
                         refreshControl={
-                            <RefreshControl
-                                refreshing={loading}
-                                onRefresh={refreshChatHistory}
-                                tintColor="#ffffff"
-                            />
+                        <RefreshControl refreshing={loading} onRefresh={handleRefresh} />
                         }
                     >
                         <View style={styles.historySection}>
@@ -225,55 +227,61 @@ const SideMenu = ({ navigation, state }: any) => {
                                         <View style={styles.groupLabelWrapper}>
                                             <Text style={styles.groupLabel} >{label}</Text>
                                         </View>
-
-                                        {chats.map((chat: any) => (
-                                            <Swipeable
-                                                friction={2}
-                                                key={chat.id}
+                                            <FlatList
+                                                data={chats}
+                                                keyExtractor={(chats) => chats.id}
+                                                scrollEnabled={false}
+                                                renderItem={({ item: chat }) => (
+                                                    <Swipeable
+                                                    friction={2}
+                                                    key={chat.id}
                                                     renderLeftActions={(progress, dragX) =>
                                                         renderLeftActions(progress, dragX, chat.id)
                                                     }
                                                     onSwipeableWillOpen={() => {
-                                                        if (openSwipeableRef.current && openSwipeableRef.current !== swipeableRefs.current[chat.id]) {
+                                                        if (
+                                                        openSwipeableRef.current &&
+                                                        openSwipeableRef.current !== swipeableRefs.current[chat.id]
+                                                        ) {
                                                         openSwipeableRef.current.close();
                                                         }
                                                     }}
                                                     onSwipeableOpen={() => {
-                                                        // Simpan referensi swipeable yang sedang terbuka
                                                         openSwipeableRef.current = swipeableRefs.current[chat.id];
                                                     }}
                                                     ref={(ref) => {
                                                         swipeableRefs.current[chat.id] = ref;
                                                     }}
-                                                >
-                                                <TouchableOpacity
-                                                style={styles.chatItem}
-                                                onPress={() => {
-                                                    navigation.navigate('Main', {
-                                                    screen: 'Chat',
-                                                    params: {
-                                                        conversationId: chat.id,
-                                                        title: chat.title,
-                                                    },
-                                                    });
-                                                    navigation.closeDrawer();
-                                                }}
-                                                >
-                                                <Text
-                                                    style={[
-                                                    styles.chatItemText,
-                                                    chat.id === activeConversationId && styles.activeChatItemText
-                                                    ]}
-                                                    numberOfLines={1}
-                                                >
-                                                    {chat.title}
-                                                </Text>
-                                                <Text style={styles.chatDateText}>
-                                                    {new Date(chat.lastUpdated || chat.createdAt).toLocaleDateString()}
-                                                </Text>
-                                                </TouchableOpacity>
-                                            </Swipeable>
-                                            ))}
+                                                    >
+                                                    <TouchableOpacity
+                                                        style={styles.chatItem}
+                                                        onPress={() => {
+                                                        navigation.navigate('Main', {
+                                                            screen: 'Chat',
+                                                            params: {
+                                                            conversationId: chat.id,
+                                                            title: chat.title,
+                                                            },
+                                                        });
+                                                        navigation.closeDrawer();
+                                                        }}
+                                                    >
+                                                        <Text
+                                                        style={[
+                                                            styles.chatItemText,
+                                                            chat.id === activeConversationId && styles.activeChatItemText,
+                                                        ]}
+                                                        numberOfLines={1}
+                                                        >
+                                                        {chat.title}
+                                                        </Text>
+                                                        <Text style={styles.chatDateText}>
+                                                        {new Date(chat.lastUpdated || chat.createdAt).toLocaleDateString()}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                    </Swipeable>
+                                                )}
+                                            />
                                     </View>
                                 ))
                             )}
