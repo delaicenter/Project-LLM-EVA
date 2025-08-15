@@ -8,11 +8,12 @@ import {
   TouchableOpacity,
   useWindowDimensions
 } from 'react-native';
-import { styles } from './style';
+import { makeStyles } from './style';
 import { useNavigation } from '@react-navigation/native';
 import { changePassword } from '../../services/Auth/auth.service';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import CustomAlert from '../../components/customAlert';
+import { useTheme } from '../../theme/themeContext';
 
 const ChangePasswordScreen: React.FC = () => {
   const [newPassword, setNewPassword] = useState('');
@@ -27,6 +28,8 @@ const ChangePasswordScreen: React.FC = () => {
 
   const { width, height } = useWindowDimensions();
   const navigation = useNavigation();
+  const { theme } = useTheme();
+  const styles = makeStyles(theme);
 
   const showAlert = (title: string, message: string, onClose?: () => void) => {
     setAlertTitle(title);

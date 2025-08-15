@@ -5,12 +5,15 @@ import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider } from './app/services/Auth/AuthContext'; 
 import { useAuth } from './app/services/Auth/useAuth';
 import { ChatHistoryProvider } from './app/services/Chats/ChatHistoryContext';
+import { ThemeProvider, useTheme } from './app/theme/themeContext';
 
 SplashScreen.preventAutoHideAsync();
 
 function MainApp() {
   const [appReady, setAppReady] = useState(false);
   const { checkAuth } = useAuth();
+  const { theme } = useTheme();
+
 
   useEffect(() => {
     checkAuth(); 
@@ -43,11 +46,13 @@ function MainApp() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ChatHistoryProvider>
-        <MainApp />
-      </ChatHistoryProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ChatHistoryProvider>
+          <MainApp />
+        </ChatHistoryProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

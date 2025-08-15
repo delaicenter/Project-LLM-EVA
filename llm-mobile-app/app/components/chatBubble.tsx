@@ -13,15 +13,83 @@ import * as Clipboard from 'expo-clipboard';
 import { TouchableOpacity } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Markdown from 'react-native-markdown-display';
+import { useThemedStyles } from "../theme/useThemedStyles";
+import { useTheme } from "../theme/themeContext"
 
+const themedStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+    maxWidth: '95%',
+    padding: 16,
+    borderRadius: 16,
+    marginVertical: 8,
+    shadowColor: theme.text,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  userBubble: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#E3F2FD',
+    borderBottomRightRadius: 4,
+    marginRight: 5,
+  },
+  otherBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: theme.otherModal,
+    borderBottomLeftRadius: 4,
+    marginLeft: 5,
+  },
+  userText: {
+    color: '#111827',
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  timestamp: {
+    fontSize: 11,
+    marginTop: 6,
+    textAlign: 'right',
+    opacity: 0.7,
+  },
+  userTimestamp: {
+    color: '#4B5563',
+  },
+  otherTimestamp: {
+    color: '#9CA3AF',
+  },
+  cursor: {
+    width: 8,
+    height: 20,
+    backgroundColor: '#F8F9FA',
+    marginLeft: 4,
+    opacity: 0.8,
+  },
+     footerRow: {
+     flexDirection: 'row',
+     justifyContent: 'flex-end',
+     alignItems: 'center',
+     marginTop: 6,
+     gap: 6,
+     },
+
+     copyButton: {
+     padding: 4,
+     },
+  }); 
 
 type ChatBubbleProps = {
   message: string;
   isUser: boolean;
   timestamp: string;
   isTyping?: boolean;
+  isStopped?: boolean;
   onTypingDone?: () => void;
 };
+
 
 function stripMarkdown(markdown: string): string {
   return markdown
@@ -38,11 +106,11 @@ function stripMarkdown(markdown: string): string {
     .trim();
 }
 
-
 const ChatBubble = ({
   message,
   isUser,
   timestamp,
+  isStopped = false, 
   isTyping = false,
   onTypingDone,
 }: ChatBubbleProps) => {
@@ -55,6 +123,7 @@ const ChatBubble = ({
   const cursorIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const textBufferRef = useRef('');
   const currentIndexRef = useRef(0);
+  const styles = useThemedStyles(themedStyles);
 
   const cleanedMessage = useMemo(
     () => (isUser ? message : removeThinkTags(message)),
@@ -77,6 +146,13 @@ const ChatBubble = ({
       setDisplayedText('');
 
       typingIntervalRef.current = setInterval(() => {
+        if (isStopped) {
+          clearInterval(typingIntervalRef.current!);
+          typingIntervalRef.current = null;
+          setShowCursor(false);
+          return;
+        }
+
         const nextIndex = currentIndexRef.current;
         if (nextIndex < cleanedMessage.length) {
           textBufferRef.current += cleanedMessage[nextIndex];
@@ -88,7 +164,7 @@ const ChatBubble = ({
           setShowCursor(false);
           onTypingDone?.();
         }
-      }, 16); 
+      }, 16);
 
       return () => {
         if (typingIntervalRef.current) {
@@ -96,7 +172,9 @@ const ChatBubble = ({
         }
       };
     } else {
-      setDisplayedText(cleanedMessage);
+      if (!isStopped) {
+        setDisplayedText(cleanedMessage);
+      }
       setShowCursor(false);
     }
   }, [cleanedMessage, isTyping, isUser]);
@@ -115,20 +193,22 @@ const ChatBubble = ({
     }
   }, [isTyping, isUser]);
 
+  const { theme } = useTheme();
+  
   const markdownStyles: { [key: string]: TextStyle | ViewStyle } = {
     body: {
-      color: isUser ? '#111' : '#F8F9FA',
+      color: isUser ? theme.text : theme.text,
       fontSize: 16,
       lineHeight: 24,
     },
     text: {
-      color: isUser ? '#111' : '#F8F9FA',
+      color: isUser ? theme.text : theme.text,
       fontSize: 16,
       lineHeight: 24,
     },
     strong: {
       fontWeight: '700',
-      color: isUser ? '#000' : '#FFF',
+      color: isUser ? theme.text : theme.text,
     },
     em: {
       fontStyle: 'italic',
@@ -136,13 +216,13 @@ const ChatBubble = ({
     heading1: {
       fontSize: 20,
       fontWeight: '700',
-      color: isUser ? '#000' : '#FFF',
+      color: isUser ? theme.text : theme.text,
       marginVertical: 8,
     },
     heading2: {
       fontSize: 18,
       fontWeight: '600',
-      color: isUser ? '#000' : '#FFF',
+      color: isUser ? theme.text : theme.text,
       marginVertical: 6,
     },
     bullet_list: {
@@ -158,17 +238,17 @@ const ChatBubble = ({
     },
     list_item_content: {
       flex: 1,
-      color: isUser ? '#111' : '#F8F9FA',
+      color: isUser ? theme.text : theme.text,
     },
     table: {
       borderWidth: 1,
-      borderColor: isUser ? '#E0E0E0' : '#374151',
+      borderColor: isUser ? '#E0E0E0' : '#3b3c3fff',
       marginVertical: 8,
       borderRadius: 6,
       overflow: 'hidden',
     },
     th: {
-      backgroundColor: isUser ? '#F0F0F0' : '#1F2937',
+      backgroundColor: isUser ? theme.th : theme.th,
       padding: 10,
       fontWeight: '600',
       borderColor: isUser ? '#D1D5DB' : '#374151',
@@ -226,15 +306,15 @@ const ChatBubble = ({
       {isUser ? (
         <Text style={styles.userText}>{cleanedMessage}</Text>
       ) : 
-(
-  <>
-     <View>
-     <Markdown style={markdownStyles}>{displayedText}</Markdown>
+  (
+    <>
+      <View>
+      <Markdown style={markdownStyles}>{displayedText}</Markdown>
 
-     {isTyping && showCursor && <View style={styles.cursor} />}
-     </View>
-  </>
-)}
+      {isTyping && showCursor && <View style={styles.cursor} />}
+      </View>
+    </>
+  )}
      <View style={styles.footerRow}>
      <Text
      style={[
@@ -258,69 +338,8 @@ const ChatBubble = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    maxWidth: '95%',
-    padding: 16,
-    borderRadius: 16,
-    marginVertical: 8,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  userBubble: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#E3F2FD',
-    borderBottomRightRadius: 4,
-    marginRight: 5,
-  },
-  otherBubble: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1E293B',
-    borderBottomLeftRadius: 4,
-    marginLeft: 5,
-  },
-  userText: {
-    color: '#111827',
-    fontSize: 16,
-    lineHeight: 24,
-  },
-  timestamp: {
-    fontSize: 11,
-    marginTop: 6,
-    textAlign: 'right',
-    opacity: 0.7,
-  },
-  userTimestamp: {
-    color: '#4B5563',
-  },
-  otherTimestamp: {
-    color: '#9CA3AF',
-  },
-  cursor: {
-    width: 8,
-    height: 20,
-    backgroundColor: '#F8F9FA',
-    marginLeft: 4,
-    opacity: 0.8,
-  },
-     footerRow: {
-     flexDirection: 'row',
-     justifyContent: 'flex-end',
-     alignItems: 'center',
-     marginTop: 6,
-     gap: 6, // atau gunakan `marginLeft` jika gap tidak didukung
-     },
+// const styles = StyleSheet.create({
 
-     copyButton: {
-     padding: 4,
-     },
-
-});
+// });
 
 export default ChatBubble;

@@ -12,6 +12,9 @@ import { ChatScreenProps } from '../../navigation/type';
 import { useFocusEffect } from '@react-navigation/native';
 import { chatService } from '../../services/Chats/chats.service';
 import { useChatHistory } from '../../services/Chats/ChatHistoryContext';
+import { useThemedStyles } from "../../theme/useThemedStyles";
+import { useTheme } from "../../theme/themeContext";
+
 type Message = {
   id: string;
   text: string;
@@ -20,6 +23,45 @@ type Message = {
   isLoading?: boolean;
   isTyping?: boolean;
 };
+
+const themedStyles = (theme: any) =>
+  StyleSheet.create({
+    container: {
+    flex: 1,
+    backgroundColor: theme.backgroundChat,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  chatContainer: {
+    flex: 1,
+  },
+  chatContentContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  emptyChatContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  inputWrapper: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    backgroundColor: theme.backgroundChat,
+    paddingBottom: Platform.OS === 'ios' ? 16 :8,
+  },
+  authContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  });
 
 const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   const { conversationId: paramConversationId } = route.params || {};
@@ -30,6 +72,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const { setChatHistory, moveChatToTop } = useChatHistory();
+  const [isStopped, setIsStopped] = useState(false);
+  const styles = useThemedStyles(themedStyles);
 
   const resetchat = () => {
     setMessages([]);
@@ -42,44 +86,52 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
     }, [paramConversationId])
   );
 
-
-useEffect(() => {
-  const initChat = async () => {
-    if (!isLoggedIn) return;
-
-    if (paramConversationId) {
-      try {
-        const prevMsgs = await chatService.getPreviousMessages(paramConversationId);
-        const sortedMsgs = [...prevMsgs].sort(
-          (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-        );
-
-        const formatted = sortedMsgs.map((msg: any) => ({
-          id: msg.id?.toString() ?? Date.now().toString(),
-          text: msg.content || '',
-          isUser: msg.role === 'user',
-          timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }));
-        setMessages(formatted);
-        setConversationId(paramConversationId);
-
-        setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: false }), 100);
-      } catch (err) {
-        console.error('Gagal load chat lama:', err);
-      }
-    } else {
-      setMessages([]);
-      try {
-        const newId = await chatService.initiateConversation();
-        setConversationId(newId);
-      } catch (err) {
-        console.error('Gagal bikin percakapan baru:', err);
-      }
-    }
+  const handleStopGenerate = () => {
+    setIsStopped(true);
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.isLoading || m.isTyping ? { ...m, isLoading: false, isTyping: false } : m
+      )
+    );
   };
 
-  initChat();
-}, [paramConversationId, isLoggedIn]);
+  useEffect(() => {
+    const initChat = async () => {
+      if (!isLoggedIn) return;
+
+      if (paramConversationId) {
+        try {
+          const prevMsgs = await chatService.getPreviousMessages(paramConversationId);
+          const sortedMsgs = [...prevMsgs].sort(
+            (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+          );
+
+          const formatted = sortedMsgs.map((msg: any) => ({
+            id: msg.id?.toString() ?? Date.now().toString(),
+            text: msg.content || '',
+            isUser: msg.role === 'user',
+            timestamp: new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          }));
+          setMessages(formatted);
+          setConversationId(paramConversationId);
+
+          setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: false }), 100);
+        } catch (err) {
+          console.error('Gagal load chat lama:', err);
+        }
+      } else {
+        setMessages([]);
+        try {
+          const newId = await chatService.initiateConversation();
+          setConversationId(newId);
+        } catch (err) {
+          console.error('Gagal bikin percakapan baru:', err);
+        }
+      }
+    };
+
+    initChat();
+  }, [paramConversationId, isLoggedIn]);
 
   /* Keyboard listener */
   useEffect(() => {
@@ -103,6 +155,7 @@ useEffect(() => {
 
   /* Kirim pesan */
   const handleSendMessage = async (message: string) => {
+    setIsStopped(false);
     if (!message.trim() || !isLoggedIn) return;
 
     const newMsg: Message = {
@@ -145,7 +198,6 @@ try {
   };
   setMessages((prev) => [...prev.map((m) => ({ ...m, isTyping: false })), reply]);
 
-  // Scroll ke bawah setelah balasan
   setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
 
   setChatHistory(updatedHistory);
@@ -192,6 +244,7 @@ try {
                   isUser={m.isUser}
                   timestamp={m.timestamp}
                   isTyping={m.isTyping}
+                  isStopped={isStopped}
                   onTypingDone={() => {
                     setMessages((prev) =>
                       prev.map((msg) => msg.id === m.id ? { ...msg, isTyping: false } : msg)
@@ -203,51 +256,16 @@ try {
           )}
         </ScrollView>
 
-        <View style={styles.inputWrapper}>
-          <MessageInputCard onSend={handleSendMessage} />
-        </View>
+    <View style={styles.inputWrapper}>
+      <MessageInputCard 
+        onSend={handleSendMessage} 
+        onStop={handleStopGenerate}
+        isGenerating={messages.some(m => m.isLoading || m.isTyping)} 
+      />
+    </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
-
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#021526',
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flex: 1,
-    justifyContent: 'space-between',
-  },
-  chatContainer: {
-    flex: 1,
-  },
-  chatContentContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  emptyChatContentContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  inputWrapper: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    backgroundColor: '#021526',
-    paddingBottom: Platform.OS === 'ios' ? 16 :8,
-  },
-  authContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-});
 
 export default ChatScreen;

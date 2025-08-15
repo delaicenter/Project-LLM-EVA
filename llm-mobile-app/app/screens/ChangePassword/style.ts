@@ -1,15 +1,17 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from "../../theme/theme";
 
-export const styles = StyleSheet.create({
+export const makeStyles = (theme: Theme) =>
+  StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#021526',
+    backgroundColor: theme.background,
   },
   container: {
     paddingHorizontal: 20,
   },
   title: {
-    color: '#fff',
+    color: theme.text,
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
@@ -17,7 +19,7 @@ export const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: theme.inputBackground,
     borderRadius: 8,
     paddingHorizontal: 12,
     marginBottom: 12,
@@ -26,7 +28,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     fontSize: 14,
-    color: '#000',
+    color: theme.text,
   },
   changeButton: {
     backgroundColor: '#007BFF',
@@ -54,6 +56,5 @@ changeButtonTextOutline: {
   color: '#6EACDA',
   fontWeight: 'bold',
   fontSize: 16,
-},
-
+    },
 });

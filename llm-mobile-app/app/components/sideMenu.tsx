@@ -14,6 +14,204 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Animated } from 'react-native';
 import { FlatList } from 'react-native';
+import { useThemedStyles } from "../theme/useThemedStyles";
+
+const themedStyles = (theme: any) =>
+  StyleSheet.create({
+        container: {
+        flex: 1,
+        backgroundColor: theme.backgroundChat,
+    },
+    fixedSection: {
+        paddingTop: 0,
+    },
+    userSection: {
+        padding: 20,
+        paddingBottom: 10,
+    },
+    userName: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginBottom: 4,
+        color: theme.text,
+    },
+    userEmail: {
+        fontSize: 14,
+        color: '#666',
+    },
+    searchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#e1e1e1ff',
+        borderRadius: 8,
+        marginHorizontal: 15,
+        marginBottom: 15,
+        paddingHorizontal: 10,
+    },
+    searchIcon: {
+        marginRight: 8,
+        color: theme.icon
+    },
+    searchInput: {
+        flex: 1,
+        height: 40,
+        fontSize: 14,
+        color: theme.placeholder
+    },
+    newChatButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: theme.button,
+        padding: 12,
+        borderRadius: 8,
+        marginBottom: 16,
+        justifyContent: 'center',
+        marginHorizontal: 15,
+    },
+    newChatButtonText: {
+        color: theme.textButton,
+        marginLeft: 8,
+        fontWeight: 'bold',
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingBottom: 20,
+    },
+    historySection: {
+        paddingHorizontal: 10,
+    },
+    sectionTitle: {
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: '#555',
+        paddingTop: 0,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    loadingIndicator: {
+        marginBottom: 15,
+    },
+    loadingText: {
+        color: theme.text,
+        fontSize: 16,
+        textAlign: 'center',
+    },
+    chatItem: {
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderRadius: 4,
+        marginBottom: 4,
+    },
+    activeChatItem: {
+        backgroundColor: 'rgba(3, 52, 110, 0.2)',
+        borderLeftWidth: 3,
+        borderLeftColor: '#03346E',
+    },
+    chatItemText: {
+        color: theme.text,
+        fontSize: 16
+    },
+    activeChatItemText: {
+        fontWeight: 'bold',
+        color: '#03346E',
+    },
+    errorText: {
+        color: '#ff4444',
+        textAlign: 'center',
+        marginTop: 10,
+    },
+    emptyText: {
+        color: '#666',
+        textAlign: 'center',
+        marginTop: 10,
+    },
+    chatDateText: {
+        color: '#888',
+        fontSize: 12,
+        marginTop: 2,
+    },
+    footer: {
+        marginTop: 20,
+        alignItems: 'center',
+        paddingVertical: 10,
+    },
+    separator: {
+        borderBottomColor: theme.divider,
+        borderBottomWidth: 1,
+        marginVertical: 10,
+        marginHorizontal: 10,
+    },  
+    footerText: {
+        color: theme.text,
+        fontSize: 13,
+        fontStyle: 'italic',
+        letterSpacing: 0.5,
+        opacity: 0.7,
+    },
+    button: {
+        padding: 12,
+        borderRadius: 6,
+        alignItems: 'center',
+        width: '100%',
+    },
+    loginButton: {
+        backgroundColor: '#007AFF',
+    },
+    logoutButton: {
+        borderColor: '#ff4444',
+        borderWidth: 1,
+    },
+    buttonText: {
+        color: '#ff4444',
+        fontWeight: 'bold',
+    },
+    loginPrompt: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    loginText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+    },
+    groupLabelWrapper: {
+        backgroundColor: 'rgba(90, 90, 90, 0.05)',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+        marginHorizontal: 10,    
+        borderRadius: 6,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    groupLabel: {   
+        color: theme.text,
+        fontWeight: 'bold',
+        fontSize: 14,
+        textAlign: 'center',
+    },
+    deleteSwipe: {
+    backgroundColor: '#FF3B30',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 64,
+    paddingVertical: 10,
+    borderRadius: 8,
+    },
+    deleteText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+    marginTop: 4,
+    },
+  })
 
 const SideMenu = ({ navigation, state }: any) => {
     const { isLoggedIn, isLoading, user } = useAuth();
@@ -34,6 +232,7 @@ const SideMenu = ({ navigation, state }: any) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
     const [showActionMenuForId, setShowActionMenuForId] = useState<string | null>(null);
+    const styles = useThemedStyles(themedStyles);
 
     const confirmDelete = (chatId: string) => {
         setSelectedChatId(chatId);
@@ -187,13 +386,12 @@ const SideMenu = ({ navigation, state }: any) => {
                         </View>
 
                         <View style={styles.searchContainer}>
-                            <Icon name="search" size={20} color="#666" style={styles.searchIcon} />
+                            <Icon name="search" size={20}  style={styles.searchIcon} />
                             <TextInput
                                 style={styles.searchInput}
                                 placeholder="Cari riwayat obrolan..."
                                 value={searchQuery}
                                 onChangeText={setSearchQuery}
-                                placeholderTextColor="#03346E"
                             />
                         </View>
 
@@ -322,205 +520,6 @@ const SideMenu = ({ navigation, state }: any) => {
     </TouchableWithoutFeedback>
     );
 };
-
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#021526',
-    },
-    fixedSection: {
-        paddingTop: 0,
-    },
-    userSection: {
-        padding: 20,
-        paddingBottom: 10,
-    },
-    userName: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 4,
-        color: '#ffffff',
-    },
-    userEmail: {
-        fontSize: 14,
-        color: '#666',
-    },
-    searchContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f5f5f5',
-        borderRadius: 8,
-        marginHorizontal: 15,
-        marginBottom: 15,
-        paddingHorizontal: 10,
-    },
-    searchIcon: {
-        marginRight: 8,
-    },
-    searchInput: {
-        flex: 1,
-        height: 40,
-        fontSize: 14,
-        color: '#03346E'
-    },
-    newChatButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#03346E',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 16,
-        justifyContent: 'center',
-        marginHorizontal: 15,
-    },
-    newChatButtonText: {
-        color: '#fff',
-        marginLeft: 8,
-        fontWeight: 'bold',
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingBottom: 20,
-    },
-    historySection: {
-        paddingHorizontal: 10,
-    },
-    sectionTitle: {
-        fontWeight: 'bold',
-        marginBottom: 10,
-        color: '#555',
-        paddingTop: 0,
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    loadingIndicator: {
-        marginBottom: 15,
-    },
-    loadingText: {
-        color: '#ffffff',
-        fontSize: 16,
-        textAlign: 'center',
-    },
-    chatItem: {
-        paddingVertical: 12,
-        paddingHorizontal: 10,
-        borderRadius: 4,
-        marginBottom: 4,
-    },
-    activeChatItem: {
-        backgroundColor: 'rgba(3, 52, 110, 0.2)',
-        borderLeftWidth: 3,
-        borderLeftColor: '#03346E',
-    },
-    chatItemText: {
-        color: '#ffffff',
-        fontSize: 16
-    },
-    activeChatItemText: {
-        fontWeight: 'bold',
-        color: '#03346E',
-    },
-    errorText: {
-        color: '#ff4444',
-        textAlign: 'center',
-        marginTop: 10,
-    },
-    emptyText: {
-        color: '#666',
-        textAlign: 'center',
-        marginTop: 10,
-    },
-    chatDateText: {
-        color: '#888',
-        fontSize: 12,
-        marginTop: 2,
-    },
-    footer: {
-        marginTop: 20,
-        alignItems: 'center',
-        paddingVertical: 10,
-    },
-    separator: {
-        borderBottomColor: '#444',
-        borderBottomWidth: 1,
-        marginVertical: 10,
-        marginHorizontal: 10,
-    },  
-    footerText: {
-        color: '#ffffff',
-        fontSize: 13,
-        fontStyle: 'italic',
-        letterSpacing: 0.5,
-        opacity: 0.7,
-    },
-    button: {
-        padding: 12,
-        borderRadius: 6,
-        alignItems: 'center',
-        width: '100%',
-    },
-    loginButton: {
-        backgroundColor: '#007AFF',
-    },
-    logoutButton: {
-        borderColor: '#ff4444',
-        borderWidth: 1,
-    },
-    buttonText: {
-        color: '#ff4444',
-        fontWeight: 'bold',
-    },
-    loginPrompt: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 20,
-    },
-    
-    loginText: {
-        fontSize: 16,
-        color: '#666',
-        textAlign: 'center',
-    },
-    groupLabelWrapper: {
-        backgroundColor: 'rgba(90, 90, 90, 0.05)',
-        paddingVertical: 6,
-        paddingHorizontal: 10,
-        marginHorizontal: 10,    
-        borderRadius: 6,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-
-    groupLabel: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
-        textAlign: 'center',
-    },
-    deleteSwipe: {
-    backgroundColor: '#FF3B30',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 64,
-    paddingVertical: 10,
-    borderRadius: 8,
-    },
-
-    deleteText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 12,
-    marginTop: 4,
-    },
-});
 
 
 export default SideMenu;

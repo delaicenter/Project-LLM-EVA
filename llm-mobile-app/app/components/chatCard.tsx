@@ -11,19 +11,52 @@ import { MaterialIcons as Icon } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import RecordingModal from "./recordModal";
 import { uploadAudio } from "../services/Audio/audio.service";
+import { useThemedStyles } from "../theme/useThemedStyles";
+import { useTheme } from "../theme/themeContext";
 
 type MessageInputCardProps = {
   onSend: (message: string) => void;
   autoFocus?: boolean;
+  onStop: () => void;
+  isGenerating?: boolean;
 };
 
-const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
+const MessageInputCard = ({ onSend, onStop, autoFocus, isGenerating }: MessageInputCardProps) => {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [recordingText, setRecordingText] = useState("Mendengarkan...");
   const slideAnim = useState(new Animated.Value(0))[0];
   const inputRef = useRef<TextInput>(null);
+
+  const { theme } = useTheme();
+  const styles = useThemedStyles((theme) => ({
+    container: {
+      backgroundColor: theme.inputBackground,
+      borderRadius: 25,
+      paddingHorizontal: 15,
+      paddingVertical: 8,
+    },
+    inputContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    input: {
+      flex: 1,
+      minHeight: 40,
+      maxHeight: 120,
+      paddingHorizontal: 10,
+      fontSize: 16,
+      color: theme.placeholder,
+      paddingVertical: 8,
+    },
+    iconContainer: {
+      marginLeft: 10,
+    },
+    iconButton: {
+      padding: 8,
+    },
+  }));
 
   useEffect(() => {
     if (autoFocus) {
@@ -43,20 +76,16 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
 
   const startRecording = async () => {
     try {
-      console.log("Meminta izin microphone...");
       const { status } = await Audio.requestPermissionsAsync();
       if (status !== "granted") {
         alert("Izin microphone dibutuhkan!");
         return;
       }
-
-      console.log("Menyiapkan audio...");
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
 
-      console.log("Mulai merekam...");
       const { recording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
@@ -79,7 +108,6 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
   };
 
   const stopRecording = async () => {
-    console.log("Stop recording...");
     setIsRecording(false);
     Animated.timing(slideAnim, {
       toValue: 0,
@@ -90,12 +118,10 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
     try {
       await recording?.stopAndUnloadAsync();
       const uri = recording?.getURI();
-      console.log("File audio:", uri);
-
       if (uri) {
         const transcript = await uploadAudio(uri);
         if (transcript) {
-          setMessage(transcript); // ✅ langsung isi ke input
+          setMessage(transcript);
         }
       }
       setRecording(null);
@@ -118,16 +144,20 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
           ref={inputRef}
           style={styles.input}
           placeholder="Tanyakan sesuatu..."
-          placeholderTextColor="#ffffff"
+          placeholderTextColor={theme.icon}
           value={message}
           onChangeText={setMessage}
           multiline
           onSubmitEditing={handleSend}
         />
         <View style={styles.iconContainer}>
-          {message ? (
+          {isGenerating ? (
+            <TouchableOpacity onPress={onStop} style={styles.iconButton}>
+              <Icon name="stop" size={24} color={theme.icon} />
+            </TouchableOpacity>
+          ) : message ? (
             <TouchableOpacity onPress={handleSend} style={styles.iconButton}>
-              <Icon name="send" size={24} color="#ffffff" />
+              <Icon name="send" size={24} color={theme.icon} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
@@ -137,7 +167,7 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
               <Icon
                 name={isRecording ? "mic-off" : "mic"}
                 size={24}
-                color={isRecording ? "#FF3B30" : "#FFFFFF"}
+                color={isRecording ? "#FF3B30" : theme.icon}
               />
             </TouchableOpacity>
           )}
@@ -146,33 +176,5 @@ const MessageInputCard = ({ onSend, autoFocus }: MessageInputCardProps) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#0D6BDE2A",
-    borderRadius: 25,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  input: {
-    flex: 1,
-    minHeight: 40,
-    maxHeight: 120,
-    paddingHorizontal: 10,
-    fontSize: 16,
-    color: "white",
-    paddingVertical: 8,
-  },
-  iconContainer: {
-    marginLeft: 10,
-  },
-  iconButton: {
-    padding: 8,
-  },
-});
 
 export default MessageInputCard;
