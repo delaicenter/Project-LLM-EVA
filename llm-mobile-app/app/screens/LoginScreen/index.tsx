@@ -15,12 +15,13 @@ import { CommonActions, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/type';
 import { styles } from './style';
-import AuthService from '../../services/Auth/auth.service';
 import { useAuth } from '../../services/Auth/AuthContext';
+import { Feather } from '@expo/vector-icons'; // ✅ icon
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [secureText, setSecureText] = useState(true); // ✅ toggle state
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -29,10 +30,8 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     setErrorMessage('');
-
     try {
       await login(username, password);
-
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
@@ -44,6 +43,7 @@ const LoginScreen = () => {
       setErrorMessage('Login gagal. Periksa kembali username dan password.');
     }
   };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
@@ -66,16 +66,28 @@ const LoginScreen = () => {
             value={username}
           />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#888"
-            secureTextEntry
-            returnKeyType="done"
-            onSubmitEditing={handleLogin}
-            onChangeText={setPassword}
-            value={password}
-          />
+          <View style={{ position: 'relative' }}>
+            <TextInput
+              style={[styles.input, { paddingRight: 40 }]} // beri ruang kanan untuk icon
+              placeholder="Password"
+              placeholderTextColor="#888"
+              secureTextEntry={secureText}
+              returnKeyType="done"
+              onSubmitEditing={handleLogin}
+              onChangeText={setPassword}
+              value={password}
+            />
+            <TouchableOpacity
+              style={{ position: 'absolute', right: 12, top: '20%' }}
+              onPress={() => setSecureText(!secureText)}
+            >
+              <Feather
+                name={secureText ? 'eye-off' : 'eye'} 
+                size={20}
+                color="#888"
+              />
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={[styles.loginButton, loading && { opacity: 0.6 }]}

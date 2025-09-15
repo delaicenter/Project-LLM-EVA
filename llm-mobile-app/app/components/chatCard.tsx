@@ -47,7 +47,7 @@ const MessageInputCard = ({ onSend, onStop, autoFocus, isGenerating }: MessageIn
       maxHeight: 120,
       paddingHorizontal: 10,
       fontSize: 16,
-      color: theme.placeholder,
+      color: theme.icon,
       paddingVertical: 8,
     },
     iconContainer: {

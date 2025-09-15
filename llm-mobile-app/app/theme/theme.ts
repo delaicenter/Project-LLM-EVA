@@ -23,12 +23,12 @@ export type Theme = {
 
 export const lightTheme: Theme = {
   background: '#FFFFFF',
-  inputBackground: '#F5F5F5',
+  inputBackground: '#d9dadaff',
   text: '#000000',
   bubbleUser: '#DCF8C6',
   bubbleBot: '#ECECEC',
   cardBackground: '#ddddddff',
-  icon: '#34495e',
+  icon: '#000000',
   placeholder: '#757474ff',
   iconHeader: '#007AFF',
   overlayModel: 'rgba(0,0,0,0.3)',
@@ -50,7 +50,7 @@ export const darkTheme: Theme = {
   bubbleUser: '#2E6F95',
   bubbleBot: '#16324F',
   cardBackground: '#0A2438',
-  icon: '#34495e',
+  icon: '#c0d0e0ff',
   placeholder: '#999999',
   iconHeader: '#007AFF', 
   overlayModel: 'rgba(92, 85, 85, 0.3)',

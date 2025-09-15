@@ -13,7 +13,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { chatService } from '../../services/Chats/chats.service';
 import { useChatHistory } from '../../services/Chats/ChatHistoryContext';
 import { useThemedStyles } from "../../theme/useThemedStyles";
-import { useTheme } from "../../theme/themeContext";
 
 type Message = {
   id: string;
@@ -74,6 +73,7 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ route }) => {
   const { setChatHistory, moveChatToTop } = useChatHistory();
   const [isStopped, setIsStopped] = useState(false);
   const styles = useThemedStyles(themedStyles);
+  
 
   const resetchat = () => {
     setMessages([]);
@@ -198,7 +198,7 @@ try {
   };
   setMessages((prev) => [...prev.map((m) => ({ ...m, isTyping: false })), reply]);
 
-  setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
+  // setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
 
   setChatHistory(updatedHistory);
     if (conversationId) {
@@ -222,7 +222,7 @@ try {
           style={styles.chatContainer}
           contentContainerStyle={{ paddingBottom: 10 }}
           keyboardShouldPersistTaps="handled"
-          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+          // onContentSizeChange={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
         >
           {messages.length === 0 ? (
             <WelcomeCard

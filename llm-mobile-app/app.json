@@ -25,12 +25,12 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
-      "package": "com.edwardtua.llmmobileapp"
+      "package": "com.william31.llmmobileapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "owner": "edwardtua",
+    "owner": "william31",
     "plugins": [
       [
         "expo-build-properties",
@@ -44,7 +44,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "a6111b53-0ad2-49dc-9a0f-6dd73034bcf2"
+        "projectId": "30e9055d-7ce2-4e31-9ff5-8583d32fa2ad"
       }
     }
   }
