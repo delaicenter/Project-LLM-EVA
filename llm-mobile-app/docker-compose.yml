@@ -1,0 +1,14 @@
+services:
+  mobile-app:
+    build: .
+    ports:
+      - "19000:19000"  
+      - "19001:19001"  
+      - "19002:19002"  
+    volumes:
+      - .:/usr/src/app
+    stdin_open: true
+    tty: true
+    environment:
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - API_URL=https://contoh.url

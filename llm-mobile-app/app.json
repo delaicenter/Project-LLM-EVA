@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "llm-mobile-app",
+    "slug": "llm-mobile-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/eva.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/transparan.png",
+      "backgroundColor": "#02152600",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/eva.png",
+        "backgroundColor": "#021526"
+      },
+      "edgeToEdgeEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
+      ],
+      "package": "com.william31.llmmobileapp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "owner": "william31",
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "useCleartextTraffic": true
+          }
+        }
+      ],
+      "expo-audio"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "30e9055d-7ce2-4e31-9ff5-8583d32fa2ad"
+      }
+    }
+  }
+}
